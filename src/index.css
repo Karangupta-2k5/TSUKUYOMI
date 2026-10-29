@@ -1,0 +1,97 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-primary: #07090e;
+    --bg-surface: #0d121d;
+    --bg-card: #131a29;
+    --vermilion: #c93b2b;
+    --vermilion-glow: rgba(201, 59, 43, 0.25);
+    --gold: #e6c35c;
+    --gold-glow: rgba(230, 195, 92, 0.2);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+  }
+
+  body {
+    background-color: var(--bg-primary);
+    color: #e2e8f0;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-celestial {
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.05em;
+  }
+
+  .font-japanese {
+    font-family: 'Zen Old Mincho', serif;
+  }
+}
+
+/* Custom Japanese Celestial Scroll & Card styles */
+.celestial-card {
+  background: linear-gradient(135deg, rgba(13, 18, 29, 0.85) 0%, rgba(19, 26, 41, 0.95) 100%);
+  border: 1px solid rgba(230, 195, 92, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(12px);
+  position: relative;
+  transition: all 0.25s ease-in-out;
+}
+
+.celestial-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 59, 43, 0.6), rgba(230, 195, 92, 0.6), transparent);
+}
+
+.celestial-card:hover {
+  border-color: rgba(230, 195, 92, 0.35);
+  box-shadow: 0 12px 40px 0 rgba(201, 59, 43, 0.15);
+}
+
+/* Red Vermilion Accent Badge */
+.badge-vermilion {
+  background-color: rgba(201, 59, 43, 0.15);
+  color: #ff6b5b;
+  border: 1px solid rgba(201, 59, 43, 0.4);
+}
+
+/* Gold Accent Badge */
+.badge-gold {
+  background-color: rgba(230, 195, 92, 0.15);
+  color: #fce38a;
+  border: 1px solid rgba(230, 195, 92, 0.4);
+}
+
+/* Night Honor Score Radial Ring */
+.honor-gauge {
+  background: radial-gradient(circle at center, rgba(13, 18, 29, 0.9) 60%, transparent 70%);
+}
+
+/* Subtle Starfield background pattern */
+.bg-starfield {
+  background-image: 
+    radial-gradient(1px 1px at 20px 30px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 100px 150px, #e6c35c, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 250px 80px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(2px 2px at 400px 320px, #ff8b7b, rgba(0,0,0,0)),
+    radial-gradient(1px 1px at 550px 200px, #ffffff, rgba(0,0,0,0)),
+    radial-gradient(1.5px 1.5px at 700px 450px, #e6c35c, rgba(0,0,0,0));
+  background-repeat: repeat;
+  background-size: 800px 600px;
+}
+
+/* Leaflet dark customizer */
+.leaflet-container {
+  background-color: #0d121d !important;
+  font-family: inherit;
+  border-radius: 0.75rem;
+}
+.leaflet-tile {
+  filter: brightness(0.7) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3);
+}
