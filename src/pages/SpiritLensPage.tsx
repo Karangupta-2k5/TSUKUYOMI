@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
 import { ImageEnhancementResult } from '../types';
-import { Upload, Sparkles, ShieldCheck, AlertTriangle, Layers, RotateCcw, Image as ImageIcon, Sliders } from 'lucide-react';
+import { Upload, Sparkles, ShieldCheck, AlertTriangle, Layers, RotateCcw, Image as ImageIcon, Check } from 'lucide-react';
 
-// Curated sample astrophotography captures
+interface SpiritLensPageProps {
+  onEnhanceComplete?: () => void;
+}
+
 const SAMPLE_ASTRO_IMAGES = [
   {
     name: 'Milky Way Core (Atacama)',
@@ -19,13 +22,14 @@ const SAMPLE_ASTRO_IMAGES = [
   }
 ];
 
-export const SpiritLensPage: React.FC = () => {
+export const SpiritLensPage: React.FC<SpiritLensPageProps> = ({ onEnhanceComplete }) => {
   const [currentImageIdx, setCurrentImageIdx] = useState(0);
   const [customOriginalUrl, setCustomOriginalUrl] = useState<string | null>(null);
   const [customProcessedUrl, setCustomProcessedUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showStarOverlay, setShowStarOverlay] = useState(true);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [captureLogged, setCaptureLogged] = useState(false);
 
   const activeOriginal = customOriginalUrl || SAMPLE_ASTRO_IMAGES[currentImageIdx].original;
   const activeProcessed = customProcessedUrl || SAMPLE_ASTRO_IMAGES[currentImageIdx].processed;
@@ -49,7 +53,6 @@ export const SpiritLensPage: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validation: Type and Size (< 15MB)
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/tiff'];
     if (!validTypes.includes(file.type)) {
       setUploadError('Invalid format. Please upload JPEG, PNG, TIFF, or WebP.');
@@ -67,10 +70,10 @@ export const SpiritLensPage: React.FC = () => {
       const dataUrl = event.target?.result as string;
       setCustomOriginalUrl(dataUrl);
 
-      // Simulate conservative deterministic local contrast enhancement
       setTimeout(() => {
         setCustomProcessedUrl(dataUrl);
         setIsProcessing(false);
+        if (onEnhanceComplete) onEnhanceComplete();
       }, 700);
     };
     reader.readAsDataURL(file);
@@ -80,6 +83,11 @@ export const SpiritLensPage: React.FC = () => {
     setCustomOriginalUrl(null);
     setCustomProcessedUrl(null);
     setUploadError(null);
+  };
+
+  const handleLogCapture = () => {
+    setCaptureLogged(true);
+    if (onEnhanceComplete) onEnhanceComplete();
   };
 
   return (
@@ -93,19 +101,22 @@ export const SpiritLensPage: React.FC = () => {
                 鏡花水月 • THE ASTRONOMICAL LENS
               </span>
             </div>
-            <h1 className="font-celestial text-2xl sm:text-4xl font-bold text-white mt-2">
+            <h2 className="font-celestial text-2xl sm:text-4xl font-bold text-white mt-2">
               Spirit Lens Enhancement
-            </h1>
+            </h2>
             <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
               Scientific contrast stretching, adaptive histogram equalisation, and non-destructive noise suppression. We strictly distinguish genuine optical enhancement from generative AI hallucinations.
             </p>
           </div>
 
-          {/* Controls: Overlay toggle & Preset select */}
-          <div className="flex items-center space-x-2">
+          {/* Controls: Overlay toggle & Log Capture */}
+          <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={() => setShowStarOverlay(!showStarOverlay)}
-              className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all ${
+              onClick={() => {
+                setShowStarOverlay(!showStarOverlay);
+                if (onEnhanceComplete) onEnhanceComplete();
+              }}
+              className={`flex items-center space-x-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                 showStarOverlay
                   ? 'bg-cyan-950/40 border-cyan-500/40 text-cyan-300'
                   : 'bg-[#07090e] border-white/10 text-slate-400 hover:text-white'
@@ -115,10 +126,22 @@ export const SpiritLensPage: React.FC = () => {
               <span>{showStarOverlay ? 'Star Overlays: On' : 'Star Overlays: Off'}</span>
             </button>
 
+            <button
+              onClick={handleLogCapture}
+              className={`flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+                captureLogged
+                  ? 'bg-[#c9a24a]/20 border-[#c9a24a] text-[#fce38a]'
+                  : 'bg-[#e0231c] hover:bg-[#ff5a3c] border-[#e0231c] text-white shadow-lg shadow-[#e0231c]/30'
+              }`}
+            >
+              {captureLogged ? <Check className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />}
+              <span>{captureLogged ? 'Capture Logged (+200 XP)' : 'Log Capture (+200 XP)'}</span>
+            </button>
+
             {customOriginalUrl && (
               <button
                 onClick={handleResetToPreset}
-                className="flex items-center space-x-1 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 text-slate-300 hover:text-white"
+                className="flex items-center space-x-1 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 text-slate-300 hover:text-white cursor-pointer"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span>Reset Sample</span>
@@ -134,8 +157,11 @@ export const SpiritLensPage: React.FC = () => {
             {SAMPLE_ASTRO_IMAGES.map((sample, idx) => (
               <button
                 key={sample.name}
-                onClick={() => setCurrentImageIdx(idx)}
-                className={`px-3 py-1.5 rounded-lg border transition-all ${
+                onClick={() => {
+                  setCurrentImageIdx(idx);
+                  if (onEnhanceComplete) onEnhanceComplete();
+                }}
+                className={`px-3 py-1.5 rounded-lg border transition-all cursor-pointer ${
                   currentImageIdx === idx
                     ? 'bg-[#c93b2b]/20 text-[#fce38a] border-[#e6c35c]/50 font-semibold'
                     : 'bg-[#07090e]/60 text-slate-400 border-white/5 hover:text-white'

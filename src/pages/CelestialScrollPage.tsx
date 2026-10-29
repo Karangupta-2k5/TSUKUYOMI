@@ -1,24 +1,23 @@
 import React, { useState } from 'react';
-import { CelestialEvent, EventCategory } from '../types';
+import { CelestialEvent } from '../types';
 import { EventCard } from '../components/EventCard';
-import { Sparkles, Rocket, Filter, Search, ShieldAlert, Globe } from 'lucide-react';
+import { Sparkles, Rocket, Search, ShieldAlert, Globe } from 'lucide-react';
 
 interface CelestialScrollPageProps {
   events: CelestialEvent[];
+  onTrackEvent?: (id: string) => void;
 }
 
-export const CelestialScrollPage: React.FC<CelestialScrollPageProps> = ({ events }) => {
+export const CelestialScrollPage: React.FC<CelestialScrollPageProps> = ({ events, onTrackEvent }) => {
   const [filterType, setFilterType] = useState<'all' | 'astronomical' | 'spaceflight' | 'meteor_shower' | 'eclipse'>('all');
   const [searchFilter, setSearchFilter] = useState('');
 
   const filteredEvents = events.filter((e) => {
-    // Type filter
     if (filterType === 'astronomical' && e.eventType !== 'astronomical') return false;
     if (filterType === 'spaceflight' && e.eventType !== 'spaceflight') return false;
     if (filterType === 'meteor_shower' && e.category !== 'meteor_shower') return false;
     if (filterType === 'eclipse' && e.category !== 'eclipse') return false;
 
-    // Search filter
     if (searchFilter.trim()) {
       const q = searchFilter.toLowerCase();
       return (
@@ -41,11 +40,11 @@ export const CelestialScrollPage: React.FC<CelestialScrollPageProps> = ({ events
                 星々の記録 • THE ORBITAL CHRONICLE
               </span>
             </div>
-            <h1 className="font-celestial text-2xl sm:text-4xl font-bold text-white mt-2">
+            <h2 className="font-celestial text-2xl sm:text-4xl font-bold text-white mt-2">
               The Celestial Scroll
-            </h1>
+            </h2>
             <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
-              A dual chronicle distinguishing genuine natural cosmic events (meteor showers, lunar eclipses, planetary alignments) from human spaceflight missions and rocket launches.
+              A dual chronicle distinguishing genuine natural cosmic events (meteor showers, lunar eclipses, planetary alignments) from human spaceflight missions and rocket launches. Pledge watch to earn Samurai Honor XP.
             </p>
           </div>
 
@@ -61,7 +60,7 @@ export const CelestialScrollPage: React.FC<CelestialScrollPageProps> = ({ events
           <div className="flex items-center gap-2 overflow-x-auto pb-1">
             <button
               onClick={() => setFilterType('all')}
-              className={`text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition-all border ${
+              className={`text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition-all border cursor-pointer ${
                 filterType === 'all'
                   ? 'bg-[#c93b2b]/20 text-[#fce38a] border-[#e6c35c]/50 font-semibold'
                   : 'bg-[#07090e]/60 text-slate-400 border-white/5 hover:text-white'
@@ -71,7 +70,7 @@ export const CelestialScrollPage: React.FC<CelestialScrollPageProps> = ({ events
             </button>
             <button
               onClick={() => setFilterType('astronomical')}
-              className={`text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition-all border flex items-center gap-1.5 ${
+              className={`text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition-all border flex items-center gap-1.5 cursor-pointer ${
                 filterType === 'astronomical'
                   ? 'bg-[#e6c35c]/20 text-[#fce38a] border-[#e6c35c]/50 font-semibold'
                   : 'bg-[#07090e]/60 text-slate-400 border-white/5 hover:text-white'
@@ -82,7 +81,7 @@ export const CelestialScrollPage: React.FC<CelestialScrollPageProps> = ({ events
             </button>
             <button
               onClick={() => setFilterType('spaceflight')}
-              className={`text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition-all border flex items-center gap-1.5 ${
+              className={`text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition-all border flex items-center gap-1.5 cursor-pointer ${
                 filterType === 'spaceflight'
                   ? 'bg-rose-500/20 text-rose-300 border-rose-500/50 font-semibold'
                   : 'bg-[#07090e]/60 text-slate-400 border-white/5 hover:text-white'
@@ -93,7 +92,7 @@ export const CelestialScrollPage: React.FC<CelestialScrollPageProps> = ({ events
             </button>
             <button
               onClick={() => setFilterType('meteor_shower')}
-              className={`text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition-all border ${
+              className={`text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition-all border cursor-pointer ${
                 filterType === 'meteor_shower'
                   ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 font-semibold'
                   : 'bg-[#07090e]/60 text-slate-400 border-white/5 hover:text-white'
@@ -103,7 +102,7 @@ export const CelestialScrollPage: React.FC<CelestialScrollPageProps> = ({ events
             </button>
             <button
               onClick={() => setFilterType('eclipse')}
-              className={`text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition-all border ${
+              className={`text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition-all border cursor-pointer ${
                 filterType === 'eclipse'
                   ? 'bg-purple-500/20 text-purple-300 border-purple-500/50 font-semibold'
                   : 'bg-[#07090e]/60 text-slate-400 border-white/5 hover:text-white'
@@ -141,7 +140,7 @@ export const CelestialScrollPage: React.FC<CelestialScrollPageProps> = ({ events
       {filteredEvents.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredEvents.map((evt) => (
-            <EventCard key={evt.id} event={evt} />
+            <EventCard key={evt.id} event={evt} onTrackEvent={onTrackEvent} />
           ))}
         </div>
       ) : (
@@ -156,7 +155,7 @@ export const CelestialScrollPage: React.FC<CelestialScrollPageProps> = ({ events
               setFilterType('all');
               setSearchFilter('');
             }}
-            className="text-xs text-[#e6c35c] hover:underline"
+            className="text-xs text-[#e6c35c] hover:underline cursor-pointer"
           >
             Reset Filters
           </button>

@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { CelestialEvent } from '../types';
-import { Rocket, Sparkles, ExternalLink, Calendar, MapPin, Clock } from 'lucide-react';
+import { Rocket, Sparkles, ExternalLink, Calendar, MapPin, Clock, Bell, Check } from 'lucide-react';
 
 interface EventCardProps {
   event: CelestialEvent;
+  onTrackEvent?: (id: string) => void;
 }
 
-export const EventCard: React.FC<EventCardProps> = ({ event }) => {
+export const EventCard: React.FC<EventCardProps> = ({ event, onTrackEvent }) => {
   const isLaunch = event.eventType === 'spaceflight';
+  const [tracked, setTracked] = useState(false);
 
   const formatDate = (isoString: string) => {
     try {
@@ -28,6 +30,13 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
       return `${d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })} UTC`;
     } catch {
       return '';
+    }
+  };
+
+  const handleToggleTrack = () => {
+    setTracked((prev) => !prev);
+    if (!tracked && onTrackEvent) {
+      onTrackEvent(event.id);
     }
   };
 
@@ -89,18 +98,27 @@ export const EventCard: React.FC<EventCardProps> = ({ event }) => {
         </div>
       </div>
 
-      {/* Footer / Source Link */}
-      <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-[11px]">
-        <span className="text-slate-400">
-          Source: <strong className="text-slate-300">{event.sourceName}</strong>
-        </span>
+      {/* Footer / Source Link & Gamified Pledge Watch */}
+      <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between gap-2 text-[11px]">
+        <button
+          onClick={handleToggleTrack}
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition-all cursor-pointer ${
+            tracked
+              ? 'bg-[#c9a24a]/20 border-[#c9a24a] text-[#fce38a]'
+              : 'bg-white/5 border-white/10 text-slate-300 hover:border-[#e0231c]/50 hover:text-white'
+          }`}
+        >
+          {tracked ? <Check className="w-3 h-3 text-[#c9a24a]" /> : <Bell className="w-3 h-3 text-[#e0231c]" />}
+          <span>{tracked ? 'Watch Pledged (+XP)' : 'Pledge Watch'}</span>
+        </button>
+
         <a
           href={event.sourceUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center space-x-1 text-[#e6c35c] hover:text-[#ffd700] hover:underline"
         >
-          <span>Verify Data</span>
+          <span>{event.sourceName}</span>
           <ExternalLink className="w-3 h-3" />
         </a>
       </div>

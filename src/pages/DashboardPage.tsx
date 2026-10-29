@@ -3,14 +3,14 @@ import { LocationCoordinates, MoonPhaseData, WeatherScoreResponse, CelestialEven
 import { HonorScoreGauge } from '../components/HonorScoreGauge';
 import { MoonPhaseCard } from '../components/MoonPhaseCard';
 import { EventCard } from '../components/EventCard';
-import { Shield, Sparkles, Eye, ArrowRight, MapPin, Compass, Thermometer, Wind, Droplets } from 'lucide-react';
+import { Shield, Sparkles, Eye, ArrowRight, MapPin, Compass, Thermometer, Wind, Droplets, Landmark } from 'lucide-react';
 
 interface DashboardPageProps {
   weatherData: WeatherScoreResponse;
   moonData: MoonPhaseData;
   events: CelestialEvent[];
   selectedLocation: LocationCoordinates;
-  onNavigate: (tab: 'dashboard' | 'watchtower' | 'scroll' | 'lens') => void;
+  onNavigate: (tab: 'dashboard' | 'watchtower' | 'scroll' | 'lens' | 'sanctuary') => void;
   appMode: AppMode;
 }
 
@@ -56,8 +56,27 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             transparent celestial heuristics, and curated orbital chronologies into one unified dashboard.
           </p>
 
+          {/* Quick CTA Actions */}
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <button
+              onClick={() => onNavigate('sanctuary')}
+              className="flex items-center space-x-2 text-xs font-semibold bg-gradient-to-r from-[#e0231c] to-[#ff5a3c] hover:brightness-110 text-white px-5 py-3 rounded-xl shadow-lg shadow-[rgba(224,35,28,0.4)] transition-all cursor-pointer"
+            >
+              <Landmark className="w-4 h-4 text-amber-200" />
+              <span>Enter 3D Temple Sanctuary</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => onNavigate('watchtower')}
+              className="flex items-center space-x-2 text-xs font-semibold bg-[rgba(223,231,224,0.06)] hover:bg-[rgba(223,231,224,0.12)] text-[#dfe7e0] border border-[rgba(223,231,224,0.2)] px-4 py-3 rounded-xl transition-all cursor-pointer"
+            >
+              <Compass className="w-4 h-4 text-[#c9a24a]" />
+              <span>Explore Map & Night Score</span>
+            </button>
+          </div>
+
           {/* Quick Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3">
             {[
               {
                 label: 'Sanctum',
@@ -126,7 +145,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             </div>
             <button
               onClick={() => onNavigate('watchtower')}
-              className="flex items-center space-x-1 text-xs font-semibold bg-[#e0231c] hover:bg-[#ff5a3c] text-white px-4 py-2.5 rounded-xl shadow-lg shadow-[rgba(224,35,28,0.3)] transition-all shrink-0"
+              className="flex items-center space-x-1 text-xs font-semibold bg-[#e0231c] hover:bg-[#ff5a3c] text-white px-4 py-2.5 rounded-xl shadow-lg shadow-[rgba(224,35,28,0.3)] transition-all shrink-0 cursor-pointer"
             >
               <span>Explore Map</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -144,7 +163,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
           </div>
           <button
             onClick={() => onNavigate('scroll')}
-            className="text-xs text-[#c9a24a] hover:underline flex items-center space-x-1"
+            className="text-xs text-[#c9a24a] hover:underline flex items-center space-x-1 cursor-pointer"
           >
             <span>View All Events</span>
             <ArrowRight className="w-3 h-3" />
@@ -160,8 +179,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       </div>
 
       {/* ── Module Navigation Cards ── */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {[
+          {
+            id: 'sanctuary' as const,
+            icon: <Landmark className="w-5 h-5" />,
+            iconCls: 'bg-[rgba(224,35,28,0.25)] border-[rgba(224,35,28,0.5)] text-[#ff5a3c]',
+            title: '3D Temple Sanctuary',
+            desc: 'Step into the full Kyoto mountain temple with live Three.js shaders, blood moon, cloth physics and embers.',
+          },
           {
             id: 'watchtower' as const,
             icon: <Shield className="w-5 h-5" />,
