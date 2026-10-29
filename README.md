@@ -70,11 +70,39 @@ $$Score = (0.53 \times ClearSky) + (0.29 \times VisibilityScore) + (0.18 \times 
 
 ---
 
-## 📷 Spirit Lens: The Astrophotographer's Vow
-Generative neural models can hallucinate stars and deep-sky nebulae. Spirit Lens guarantees **authentic photometric signal processing**:
-- Deterministic local contrast stretching (CLAHE)
-- Wavelet noise suppression
-- Photometric star centroids tagged strictly as approximations
+## 📷 Spirit Lens: Real-ESRGAN Restoration & Astronomical Object Candidate Detection System
+Generative neural models can hallucinate stars and deep-sky nebulae. Spirit Lens guarantees **authentic photometric signal processing** paired with a scientific **Astronomical Object Candidate Detection System** powered by **Photutils**, **Astropy**, **OpenCV**, **NumPy**, and **SciPy**:
+
+### 1. Preprocessing & 2D Background Modeling
+- **Format & Channel Safety:** Decodes `JPEG`, `PNG`, `WebP`, `TIFF`, and astronomical **`FITS`** frames (`astropy.io.fits`). Preserves raw floating-point intensity (`ADU`) for photometry while keeping display stretches (`linear`, `percentile`, `log`, `asinh`) strictly for visualization. Alpha transparency channels (`RGBA`) are masked out rather than treated as signal.
+- **Spatially Varying Sky Background:** Uses `photutils.background.Background2D` with `MedianBackground` and Astropy `SigmaClip(sigma=3.0)` on an adaptive mesh grid to estimate local sky background level and RMS noise across gradients or vignetting.
+
+### 2. Point-Source (Star) & Extended-Source (Galaxy) Detection
+- **Segmentation & Deblending:** Convolves background-subtracted intensity with a matched 2D Gaussian PSF kernel (`Gaussian2DKernel`) and runs `photutils.segmentation.detect_sources` + `deblend_sources` + `SourceCatalog`.
+- **Unresolved Stellar Peak Pass:** Supplements segmentation with `photutils.detection.DAOStarFinder` and circular aperture photometry (`CircularAperture`, `aperture_photometry`).
+- **Measured Properties per Candidate:** Zero-based pixel centroid `(x_centroid, y_centroid)`, bounding box, peak intensity, background-subtracted segment flux, circular aperture flux, radial FWHM (`px`), area (`px²`), semi-major/semi-minor axes (`a`, `b`), ellipticity (`1 - b/a`), orientation (`deg`), local background & RMS, SNR, and edge/saturation/blending flags.
+
+### 3. Transparent Candidate Classification & Original vs. Restored Cross-Matching
+- Classifies sources into **`Star-Like Point Candidate`**, **`Extended-Source Candidate`**, **`Possible Galaxy / Extended Candidate`**, or **`Uncertain / Possible Artifact`** with qualitative confidence (`High`, `Medium`, `Low`) and human-readable explanations.
+- **Original vs. AI-Restored Verification:** Cross-matches detections between the original upload and the Real-ESRGAN restored image (`both`, `original_only`, `restored_only`), warning users when a candidate appears only in the AI-enhanced frame.
+- **Scientific Limitations Disclosed:** Uncalibrated consumer images report relative pixel flux (`ADU`) rather than calibrated apparent magnitudes (`mag`), and morphological classification without spectroscopy or WCS plate-solving is explicitly presented as candidate-level.
+
+### 4. Detection API Endpoints (`backend/routers/detections.py`)
+- `POST /api/images/detect-objects` — Analyze uploaded original (and optional restored) astronomical image
+- `GET /api/images/{image_id}/detections` — Retrieve full detection catalog and background summary
+- `GET /api/images/{image_id}/detections/{candidate_id}` — Inspect a single candidate with zoomed base64 cutout preview
+- `GET /api/images/{image_id}/detection-overlay` — Render annotated PNG overlay
+- `GET /api/images/{image_id}/detections/export?format=csv|json` — Export structured candidate catalog
+
+### 5. Running the Backend & Test Suite
+```bash
+cd backend
+.\.venv\Scripts\python -m pip install -r requirements.txt
+.\.venv\Scripts\python -m uvicorn main:app --host 0.0.0.0 --port 8000
+
+# Run the 35-test automated suite (including Photutils/Astropy detection tests)
+.\.venv\Scripts\python -m pytest tests/ -v
+```
 
 ---
 

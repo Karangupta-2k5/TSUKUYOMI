@@ -8,5 +8,9 @@ cachetools==5.5.0
 python-multipart>=0.0.9
 Pillow>=10.0.0
 numpy>=1.26.0
+scipy>=1.14.0
+opencv-python-headless>=4.10.0
+astropy>=6.1.0
+photutils>=2.0.0
 pytest==8.3.3
 pytest-asyncio==0.24.0

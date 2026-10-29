@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BeforeAfterSlider } from '../components/BeforeAfterSlider';
+import { AstroDetectionWorkspace } from '../components/AstroDetectionWorkspace';
 import { ImageEnhancementResult } from '../types';
 import {
   Upload,
@@ -213,6 +214,7 @@ export const SpiritLensPage: React.FC<SpiritLensPageProps> = ({ onEnhanceComplet
   const [showStarOverlay, setShowStarOverlay] = useState(true);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [captureLogged, setCaptureLogged] = useState(false);
+  const [detectedCount, setDetectedCount] = useState<number | null>(null);
 
   // Partner's Real-ESRGAN Configuration State
   const [selectedModel, setSelectedModel] = useState<EsrganModelId>('realesr-general-x4v3');
@@ -230,7 +232,7 @@ export const SpiritLensPage: React.FC<SpiritLensPageProps> = ({ onEnhanceComplet
   const activeOriginal = customOriginalUrl || SAMPLE_ASTRO_IMAGES[currentImageIdx].original;
   const activeProcessed = customProcessedUrl || SAMPLE_ASTRO_IMAGES[currentImageIdx].processed;
   const activeStarCount =
-    metrics?.starsEstimate ?? SAMPLE_ASTRO_IMAGES[currentImageIdx].starsEstimate;
+    detectedCount ?? metrics?.starsEstimate ?? SAMPLE_ASTRO_IMAGES[currentImageIdx].starsEstimate;
 
   const resultInfo: ImageEnhancementResult = {
     originalUrl: activeOriginal,
@@ -314,17 +316,26 @@ export const SpiritLensPage: React.FC<SpiritLensPageProps> = ({ onEnhanceComplet
     if (!file) return;
 
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/tiff'];
-    if (!validTypes.includes(file.type)) {
-      setUploadError('Invalid format. Please upload JPEG, PNG, TIFF, or WebP.');
+    const isFits = /\.(fits|fit|fts)$/i.test(file.name);
+    if (!validTypes.includes(file.type) && !isFits) {
+      setUploadError('Invalid format. Please upload JPEG, PNG, TIFF, WebP, or FITS.');
       return;
     }
 
-    if (file.size > 15 * 1024 * 1024) {
-      setUploadError('File exceeds 15MB limit. Please upload a compressed astronomical frame.');
+    if (file.size > 20 * 1024 * 1024) {
+      setUploadError('File exceeds 20MB limit. Please upload a compressed astronomical frame.');
       return;
     }
 
     setCustomFile(file);
+    if (isFits) {
+      // FITS files are analyzed directly by Astropy/Photutils in the candidate detection workspace
+      setCustomOriginalUrl(null);
+      setCustomProcessedUrl(null);
+      if (onEnhanceComplete) onEnhanceComplete();
+      return;
+    }
+
     setIsProcessing(true);
     const reader = new FileReader();
     reader.onload = async (event) => {
@@ -609,10 +620,12 @@ export const SpiritLensPage: React.FC<SpiritLensPageProps> = ({ onEnhanceComplet
               <span className="text-xs font-semibold text-slate-200">
                 {isProcessing ? 'Refining & Upscaling Image...' : 'Select Image to Restore'}
               </span>
-              <span className="text-[10px] text-slate-500 mt-1">PNG, JPG, JPEG, WEBP up to 15MB</span>
+              <span className="text-[10px] text-slate-500 mt-1">
+                PNG, JPG, JPEG, WEBP, FITS up to 20MB
+              </span>
               <input
                 type="file"
-                accept="image/*"
+                accept="image/*,.fits,.fit,.fts"
                 onChange={handleFileUpload}
                 disabled={isProcessing}
                 className="hidden"
@@ -639,6 +652,14 @@ export const SpiritLensPage: React.FC<SpiritLensPageProps> = ({ onEnhanceComplet
           </div>
         </div>
       </div>
+
+      {/* Scientific Astronomical Object Candidate Detection System (Photutils + Astropy) */}
+      <AstroDetectionWorkspace
+        sourceImageUrl={activeOriginal}
+        restoredImageUrl={customProcessedUrl}
+        uploadedFile={customFile}
+        onAnalysisComplete={(summary) => setDetectedCount(summary.total_candidates)}
+      />
     </div>
   );
 };
