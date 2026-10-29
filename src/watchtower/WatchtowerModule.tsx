@@ -6,6 +6,7 @@ import NightHonorScorePanel from './components/NightHonorScore';
 import BestTimePanel from './components/BestTimePanel';
 import NearbyLocations from './components/NearbyLocations';
 import StargazingMap from './components/StargazingMap';
+import Watchtower3DModel from './components/Watchtower3DModel';
 import { fetchWeather, fetchScore, fetchBestTime, fetchNearby, reverseGeocode, fetchCurrentLocation } from './api/client';
 import type {
   SelectedLocation, WeatherResponse, NightHonorScore,
@@ -193,6 +194,9 @@ export default function WatchtowerModule({ onLocationChosen }: { onLocationChose
             The Watchtower · Samurai's Celestial Guide
           </p>
         </header>
+
+        {/* ── Interactive 3D Voxel Watchtower Showcase ── */}
+        <Watchtower3DModel />
 
         {/* ── Search Panel ── */}
         <div className="bg-wt-ink-soft border border-wt-gold/15 rounded-2xl p-5 mb-5 relative overflow-hidden">
