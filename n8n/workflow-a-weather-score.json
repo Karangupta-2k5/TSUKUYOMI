@@ -1,0 +1,183 @@
+{
+  "name": "Tsukuyomi - Weather & Night Honor Score",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tsukuyomi/weather-score",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-weather-trigger",
+      "name": "Webhook: POST weather-score",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [180, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $json.body.latitude }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists"
+              }
+            },
+            {
+              "id": "c2",
+              "leftValue": "={{ $json.body.longitude }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-validate-coords",
+      "name": "Validate Coordinates",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"error\": \"Invalid or missing latitude/longitude coordinates\",\n  \"status\": 400\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "respond-invalid-coords",
+      "name": "Respond 400 (Bad Request)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [620, 440]
+    },
+    {
+      "parameters": {
+        "url": "https://api.open-meteo.com/v1/forecast",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "latitude",
+              "value": "={{ $('Webhook: POST weather-score').item.json.body.latitude }}"
+            },
+            {
+              "name": "longitude",
+              "value": "={{ $('Webhook: POST weather-score').item.json.body.longitude }}"
+            },
+            {
+              "name": "hourly",
+              "value": "cloud_cover,relative_humidity_2m,visibility,precipitation_probability,temperature_2m,wind_speed_10m"
+            },
+            {
+              "name": "timezone",
+              "value": "auto"
+            },
+            {
+              "name": "forecast_days",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 8000
+        }
+      },
+      "id": "http-open-meteo",
+      "name": "HTTP: Open-Meteo Forecast",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [620, 220]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst out = [];\n\nfor (const item of items) {\n  const data = item.json;\n  const hourly = data.hourly || {};\n  \n  const now = new Date();\n  const currentIso = now.toISOString().slice(0, 13);\n  let hourIdx = 0;\n  if (hourly.time && hourly.time.length > 0) {\n    const found = hourly.time.findIndex(t => t.startsWith(currentIso));\n    hourIdx = found !== -1 ? found : 0;\n  }\n\n  const cloudCover = hourly.cloud_cover?.[hourIdx] ?? 10;\n  const humidity = hourly.relative_humidity_2m?.[hourIdx] ?? 30;\n  const rawVisibility = hourly.visibility?.[hourIdx] ?? 24000;\n  const precip = hourly.precipitation_probability?.[hourIdx] ?? 0;\n  const temp = hourly.temperature_2m?.[hourIdx] ?? 12;\n  const wind = hourly.wind_speed_10m?.[hourIdx] ?? 8;\n\n  const clearSky = Math.max(0, Math.min(100, 100 - cloudCover));\n  const humidityScore = Math.max(0, Math.min(100, 100 - humidity));\n  const visibilityScore = Math.max(0, Math.min(100, Math.round((rawVisibility / 24000) * 100)));\n  const darknessScore = null;\n\n  // Transparent heuristic: rebalanced ClearSky (0.53) + Visibility (0.29) + Humidity (0.18)\n  const score = Math.round((0.53 * clearSky) + (0.29 * visibilityScore) + (0.18 * humidityScore));\n\n  out.push({\n    json: {\n      location: {\n        latitude: data.latitude,\n        longitude: data.longitude,\n        elevation: data.elevation || null,\n        timezone: data.timezone\n      },\n      observedAt: new Date().toISOString(),\n      score: score,\n      scoreLabel: \"weather-only estimate\",\n      components: {\n        clearSky: Math.round(clearSky),\n        visibility: Math.round(visibilityScore),\n        humidity: Math.round(humidityScore),\n        darkness: darknessScore\n      },\n      conditions: {\n        cloudCoverPct: cloudCover,\n        humidityPct: humidity,\n        visibilityMeters: rawVisibility,\n        precipitationProbability: precip,\n        temperatureC: Math.round(temp),\n        windSpeedKmh: Math.round(wind)\n      },\n      source: \"Open-Meteo Forecast via n8n\",\n      limitations: [\n        \"Light pollution data not included; score is strictly atmospheric clarity\",\n        \"Local aerosol obstructions and terrain can alter observation quality\"\n      ]\n    }\n  });\n}\n\nreturn out;"
+      },
+      "id": "code-calc-score",
+      "name": "Code: Calculate Night Honor Score",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [840, 220]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-success",
+      "name": "Respond 200 (Success)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1060, 220]
+    }
+  ],
+  "connections": {
+    "Webhook: POST weather-score": {
+      "main": [
+        [
+          {
+            "node": "Validate Coordinates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Coordinates": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Open-Meteo Forecast",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 400 (Bad Request)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Open-Meteo Forecast": {
+      "main": [
+        [
+          {
+            "node": "Code: Calculate Night Honor Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Calculate Night Honor Score": {
+      "main": [
+        [
+          {
+            "node": "Respond 200 (Success)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

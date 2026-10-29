@@ -1,0 +1,168 @@
+{
+  "name": "Tsukuyomi - Place Search & Geocoding",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "tsukuyomi/geocode",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-geocode-trigger",
+      "name": "Webhook: GET geocode",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [180, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "q1",
+              "leftValue": "={{ $json.query.q }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists"
+              }
+            }
+          ],
+          "combinator": "and"
+        }
+      },
+      "id": "if-validate-q",
+      "name": "Validate Query Parameter",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [400, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"results\": []\n}",
+        "options": {}
+      },
+      "id": "respond-empty-query",
+      "name": "Respond Empty Results",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [620, 440]
+    },
+    {
+      "parameters": {
+        "url": "https://geocoding-api.open-meteo.com/v1/search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "name",
+              "value": "={{ $('Webhook: GET geocode').item.json.query.q }}"
+            },
+            {
+              "name": "count",
+              "value": "6"
+            },
+            {
+              "name": "language",
+              "value": "en"
+            },
+            {
+              "name": "format",
+              "value": "json"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 6000
+        }
+      },
+      "id": "http-open-meteo-geocode",
+      "name": "HTTP: Open-Meteo Geocoding",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [620, 220]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst out = [];\n\nfor (const item of items) {\n  const rawResults = item.json.results || [];\n  const normalized = rawResults.map(r => ({\n    id: `${r.id || r.latitude + '_' + r.longitude}`,\n    name: r.name,\n    admin1: r.admin1 || '',\n    country: r.country || '',\n    displayName: [r.name, r.admin1, r.country].filter(Boolean).join(', '),\n    latitude: r.latitude,\n    longitude: r.longitude,\n    elevation: r.elevation || null\n  }));\n\n  out.push({\n    json: {\n      results: normalized\n    }\n  });\n}\n\nreturn out;"
+      },
+      "id": "code-normalize-places",
+      "name": "Code: Normalize Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [840, 220]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-geocode-success",
+      "name": "Respond 200 (Places)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1060, 220]
+    }
+  ],
+  "connections": {
+    "Webhook: GET geocode": {
+      "main": [
+        [
+          {
+            "node": "Validate Query Parameter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Query Parameter": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Open-Meteo Geocoding",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Empty Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Open-Meteo Geocoding": {
+      "main": [
+        [
+          {
+            "node": "Code: Normalize Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Normalize Results": {
+      "main": [
+        [
+          {
+            "node": "Respond 200 (Places)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

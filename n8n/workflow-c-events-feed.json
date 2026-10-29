@@ -1,0 +1,101 @@
+{
+  "name": "Tsukuyomi - Celestial Events & Spaceflight Feed",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "tsukuyomi/events",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-events-trigger",
+      "name": "Webhook: GET events",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [180, 260]
+    },
+    {
+      "parameters": {
+        "url": "https://ll.thespacedevs.com/2.2.0/launch/upcoming/",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "8"
+            },
+            {
+              "name": "mode",
+              "value": "normal"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 8000
+        }
+      },
+      "id": "http-launch-library",
+      "name": "HTTP: Launch Library 2",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [440, 260]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\n// 1. Curated, authoritative astronomical calendar (IMO & NASA)\nconst astronomicalEvents = [\n  {\n    id: 'astro-perseids-2026',\n    title: 'Perseid Meteor Shower Peak',\n    category: 'meteor_shower',\n    eventType: 'astronomical',\n    startTime: '2026-08-12T20:00:00Z',\n    endTime: '2026-08-13T04:30:00Z',\n    timezone: 'UTC',\n    location: 'Global (Northern Hemisphere optimal)',\n    description: 'Swift and bright meteors from Comet Swift-Tuttle, producing 60-100 meteors/hr under pristine skies.',\n    sourceName: 'International Meteor Organization',\n    sourceUrl: 'https://www.imo.net'\n  },\n  {\n    id: 'astro-eclipse-total-2026',\n    title: 'Total Solar Eclipse (Path of Totality)',\n    category: 'eclipse',\n    eventType: 'astronomical',\n    startTime: '2026-08-12T17:47:00Z',\n    endTime: '2026-08-12T18:30:00Z',\n    timezone: 'UTC',\n    location: 'Arctic, Greenland, Iceland, Northern Spain',\n    description: 'Spectacular total eclipse spanning 2 minutes 18 seconds of maximum totality across northern Europe.',\n    sourceName: 'NASA Eclipse Web Portal',\n    sourceUrl: 'https://eclipse.gsfc.nasa.gov'\n  },\n  {\n    id: 'astro-geminids-2026',\n    title: 'Geminid Meteor Shower Maximum',\n    category: 'meteor_shower',\n    eventType: 'astronomical',\n    startTime: '2026-12-14T02:00:00Z',\n    endTime: '2026-12-14T11:00:00Z',\n    timezone: 'UTC',\n    location: 'Global (Both Hemispheres)',\n    description: 'Known for high rates and multi-colored slow meteors originating from asteroid 3200 Phaethon.',\n    sourceName: 'American Meteor Society',\n    sourceUrl: 'https://www.amsmeteors.org'\n  }\n];\n\n// 2. Parse Spaceflight Launches from Launch Library 2\nconst launchesData = items[0]?.json?.results || [];\nconst spaceflightEvents = launchesData.map((l) => ({\n  id: `launch-${l.id}`,\n  title: l.name || 'Upcoming Spaceflight Mission',\n  category: 'spaceflight',\n  eventType: 'spaceflight',\n  startTime: l.net || l.window_start || new Date().toISOString(),\n  timezone: 'UTC',\n  location: l.pad?.location?.name || 'Orbital Launch Complex',\n  description: l.mission?.description || 'Orbital transport and exploration flight.',\n  sourceName: 'The Space Devs (Launch Library 2)',\n  sourceUrl: 'https://ll.thespacedevs.com',\n  rocketName: l.rocket?.configuration?.name || 'Rocket Launcher'\n}));\n\n// 3. Merge & Sort Chronologically\nconst combined = [...astronomicalEvents, ...spaceflightEvents].sort(\n  (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()\n);\n\nreturn [{\n  json: {\n    events: combined,\n    lastUpdated: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "code-merge-events",
+      "name": "Code: Merge & Normalize Events",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 260]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-events-success",
+      "name": "Respond 200 (Events)",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [940, 260]
+    }
+  ],
+  "connections": {
+    "Webhook: GET events": {
+      "main": [
+        [
+          {
+            "node": "HTTP: Launch Library 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP: Launch Library 2": {
+      "main": [
+        [
+          {
+            "node": "Code: Merge & Normalize Events",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code: Merge & Normalize Events": {
+      "main": [
+        [
+          {
+            "node": "Respond 200 (Events)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

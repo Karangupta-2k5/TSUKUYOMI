@@ -1,0 +1,36 @@
+{
+  "name": "Tsukuyomi - Sanitized Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "error-trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const errItem = $input.first()?.json || {};\n\n// Strictly sanitize: Never leak API keys, auth headers, client IPs or raw image bytes\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    workflowName: errItem.workflow?.name || 'Tsukuyomi Workflow',\n    executionId: errItem.execution?.id || 'unknown',\n    status: 'failed',\n    sanitizedMessage: errItem.execution?.error?.message || 'Upstream provider failure occurred. Fallback engaged.'\n  }\n}];"
+      },
+      "id": "code-sanitize-error",
+      "name": "Code: Sanitize Error Metadata",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [440, 300]
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code: Sanitize Error Metadata",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
