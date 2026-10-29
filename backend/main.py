@@ -13,6 +13,8 @@ from routers import weather as weather_router
 from routers import geocode as geocode_router
 from routers import nearby as nearby_router
 from routers import score as score_router
+from routers import celestial as celestial_router
+from routers import restoration as restoration_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -51,6 +53,8 @@ app.include_router(weather_router.router, prefix="/api")
 app.include_router(geocode_router.router, prefix="/api")
 app.include_router(nearby_router.router, prefix="/api")
 app.include_router(score_router.router, prefix="/api")
+app.include_router(celestial_router.router, prefix="/api")
+app.include_router(restoration_router.router, prefix="/api")
 
 
 @app.get("/health")
