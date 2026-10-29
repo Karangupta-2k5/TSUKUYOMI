@@ -37,7 +37,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, appMode
 
   const navCls = [
     'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-    stuck ? 'nav-backdrop border-b border-[rgba(223,231,224,0.09)]' : 'bg-gradient-to-b from-[#05070a]/90 to-transparent',
+    'bg-[#05070a]/95 backdrop-blur-md border-b border-[rgba(223,231,224,0.08)] shadow-2xl shadow-[#05070a]',
   ].join(' ');
 
   return (
