@@ -109,17 +109,17 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
         </div>
 
         {/* ── Mobile bottom bar ── */}
-        <div className="flex lg:hidden items-center justify-around py-2 border-t border-[rgba(223,231,224,0.06)] text-[11px] overflow-x-auto">
+        <div className="flex lg:hidden items-center justify-around py-2 border-t border-[rgba(223,231,224,0.06)] text-[11px] overflow-x-auto gap-1">
           {NAV_LINKS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`flex items-center space-x-1 px-2 py-1 rounded transition-colors duration-150 whitespace-nowrap cursor-pointer ${
+              className={`flex items-center space-x-1 px-2.5 py-1 rounded transition-colors duration-150 whitespace-nowrap cursor-pointer ${
                 activeTab === id ? 'text-[#c9a24a] bg-white/5 font-semibold' : 'text-[#78837c]'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
-              <span>{label.split(' ')[0]}</span>
+              <span>{label}</span>
             </button>
           ))}
         </div>
