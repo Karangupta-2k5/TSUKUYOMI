@@ -98,7 +98,7 @@ export const App: React.FC = () => {
 
   // Track scroll position to highlight active nav link
   useEffect(() => {
-    const sections: SectionId[] = ['sanctuary', 'gamification', 'dashboard', 'watchtower', 'scroll', 'lens'];
+    const sections: SectionId[] = ['sanctuary', 'watchtower', 'scroll', 'lens', 'dashboard', 'gamification'];
     const handleScroll = () => {
       const scrollY = window.scrollY;
       if (scrollY < window.innerHeight * 0.6) {
@@ -194,16 +194,16 @@ export const App: React.FC = () => {
             SECTION 0: COMPLETE 3D KAGE TEMPLE LANDING PAGE EXPERIENCE
             ============================================================ */}
         <section id="section-sanctuary" className="relative w-full h-screen overflow-hidden border-b border-[rgba(201,162,74,0.25)]">
-          <Scene onReachEnd={() => scrollToSection('gamification')} />
+          <Scene onReachEnd={() => scrollToSection('watchtower')} />
 
           {/* Floating Bottom Scroll Bridge CTA */}
           <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 flex items-center gap-3">
             <button
-              onClick={() => scrollToSection('gamification')}
+              onClick={() => scrollToSection('watchtower')}
               className="group flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-[#05070a]/85 hover:bg-[#e0231c] text-[#dfe7e0] hover:text-white border border-[rgba(201,162,74,0.45)] hover:border-[#e0231c] backdrop-blur-md shadow-2xl transition-all duration-300 text-xs font-semibold tracking-wider uppercase cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 text-[#c9a24a] group-hover:text-white" />
-              <span>Enter Interactive Dojo &amp; Samurai Missions</span>
+              <span>Enter Watchtower &amp; Celestial Sanctuary</span>
               <ChevronDown className="w-4 h-4 animate-bounce" />
             </button>
           </div>
@@ -214,49 +214,11 @@ export const App: React.FC = () => {
             ============================================================ */}
         <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-20 space-y-24">
 
-          {/* ── SECTION 1: SAMURAI GAMIFICATION HUB, QUESTS, SIMULATOR & QUIZ ── */}
-          <section id="section-gamification" className="scroll-mt-24 space-y-6">
-            <div className="flex items-center gap-4">
-              <span className="text-xs font-bold uppercase tracking-[0.24em] text-[#e0231c]">
-                CHAPTER I • 侍の試練
-              </span>
-              <div className="flex-1 h-px bg-[rgba(223,231,224,0.1)]" />
-              <span className="font-japanese text-xs text-[#c9a24a]">Samurai Stargazer Command</span>
-            </div>
-
-            <SamuraiGamificationHub
-              xp={xp}
-              quests={quests}
-              onCompleteQuest={completeQuest}
-              onJumpToSection={scrollToSection}
-            />
-          </section>
-
-          {/* ── SECTION 2: DOJO COMMAND & NIGHT HONOR SCORE ── */}
-          <section id="section-dashboard" className="scroll-mt-24 space-y-6">
-            <div className="flex items-center gap-4">
-              <span className="text-xs font-bold uppercase tracking-[0.24em] text-[#e0231c]">
-                CHAPTER II • 夜の誉れ
-              </span>
-              <div className="flex-1 h-px bg-[rgba(223,231,224,0.1)]" />
-              <span className="font-japanese text-xs text-[#c9a24a]">Dojo Telemetry &amp; Night Honor Score</span>
-            </div>
-
-            <DashboardPage
-              weatherData={weatherData}
-              moonData={MOCK_MOON_PHASE}
-              events={events}
-              selectedLocation={selectedLocation}
-              onNavigate={scrollToSection}
-              appMode={appMode}
-            />
-          </section>
-
-          {/* ── SECTION 3: WATCHTOWER INTERACTIVE DARK-SKY MAP ── */}
+          {/* ── SECTION 1: WATCHTOWER INTERACTIVE DARK-SKY MAP ── */}
           <section id="section-watchtower" className="scroll-mt-24 space-y-6">
             <div className="flex items-center gap-4">
               <span className="text-xs font-bold uppercase tracking-[0.24em] text-[#e0231c]">
-                CHAPTER III • 望楼観測
+                CHAPTER I • 望楼観測
               </span>
               <div className="flex-1 h-px bg-[rgba(223,231,224,0.1)]" />
               <span className="font-japanese text-xs text-[#c9a24a]">Watchtower Dark-Sky Sanctuary Map</span>
@@ -275,11 +237,11 @@ export const App: React.FC = () => {
             />
           </section>
 
-          {/* ── SECTION 4: CELESTIAL SCROLL (LAUNCHES & COSMIC EVENTS) ── */}
+          {/* ── SECTION 2: CELESTIAL SCROLL (LAUNCHES & COSMIC EVENTS) ── */}
           <section id="section-scroll" className="scroll-mt-24 space-y-6">
             <div className="flex items-center gap-4">
               <span className="text-xs font-bold uppercase tracking-[0.24em] text-[#e0231c]">
-                CHAPTER IV • 星々の記録
+                CHAPTER II • 星々の記録
               </span>
               <div className="flex-1 h-px bg-[rgba(223,231,224,0.1)]" />
               <span className="font-japanese text-xs text-[#c9a24a]">The Celestial Scroll</span>
@@ -291,17 +253,55 @@ export const App: React.FC = () => {
             />
           </section>
 
-          {/* ── SECTION 5: SPIRIT LENS ASTROPHOTOGRAPHY ENHANCER ── */}
+          {/* ── SECTION 3: SPIRIT LENS ASTROPHOTOGRAPHY ENHANCER ── */}
           <section id="section-lens" className="scroll-mt-24 space-y-6">
             <div className="flex items-center gap-4">
               <span className="text-xs font-bold uppercase tracking-[0.24em] text-[#e0231c]">
-                CHAPTER V • 鏡花水月
+                CHAPTER III • 鏡花水月
               </span>
               <div className="flex-1 h-px bg-[rgba(223,231,224,0.1)]" />
               <span className="font-japanese text-xs text-[#c9a24a]">Spirit Lens Optical Enhancement</span>
             </div>
 
             <SpiritLensPage onEnhanceComplete={() => completeQuest('quest-lens')} />
+          </section>
+
+          {/* ── SECTION 4: DOJO COMMAND & NIGHT HONOR SCORE ── */}
+          <section id="section-dashboard" className="scroll-mt-24 space-y-6">
+            <div className="flex items-center gap-4">
+              <span className="text-xs font-bold uppercase tracking-[0.24em] text-[#e0231c]">
+                CHAPTER IV • 夜の誉れ
+              </span>
+              <div className="flex-1 h-px bg-[rgba(223,231,224,0.1)]" />
+              <span className="font-japanese text-xs text-[#c9a24a]">Dojo Telemetry &amp; Night Honor Score</span>
+            </div>
+
+            <DashboardPage
+              weatherData={weatherData}
+              moonData={MOCK_MOON_PHASE}
+              events={events}
+              selectedLocation={selectedLocation}
+              onNavigate={scrollToSection}
+              appMode={appMode}
+            />
+          </section>
+
+          {/* ── SECTION 5: SAMURAI GAMIFICATION HUB, QUESTS, SIMULATOR & QUIZ ── */}
+          <section id="section-gamification" className="scroll-mt-24 space-y-6">
+            <div className="flex items-center gap-4">
+              <span className="text-xs font-bold uppercase tracking-[0.24em] text-[#e0231c]">
+                CHAPTER V • 侍の試練
+              </span>
+              <div className="flex-1 h-px bg-[rgba(223,231,224,0.1)]" />
+              <span className="font-japanese text-xs text-[#c9a24a]">Samurai Stargazer Command</span>
+            </div>
+
+            <SamuraiGamificationHub
+              xp={xp}
+              quests={quests}
+              onCompleteQuest={completeQuest}
+              onJumpToSection={scrollToSection}
+            />
           </section>
         </main>
 

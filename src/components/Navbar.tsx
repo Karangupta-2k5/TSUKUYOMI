@@ -13,15 +13,13 @@ interface NavbarProps {
 }
 
 const NAV_LINKS: { id: SectionId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: 'sanctuary',    label: '3D Temple',        icon: Landmark },
-  { id: 'gamification', label: 'Samurai Trials',   icon: Trophy   },
-  { id: 'dashboard',    label: 'Dojo Score',       icon: Compass  },
-  { id: 'watchtower',   label: 'Watchtower Map',   icon: Shield   },
-  { id: 'scroll',       label: 'Celestial Scroll', icon: Sparkles },
-  { id: 'lens',         label: 'Spirit Lens',      icon: Eye      },
+  { id: 'watchtower', label: 'Watchtower',       icon: Shield   },
+  { id: 'scroll',     label: 'Celestial Scroll', icon: Sparkles },
+  { id: 'lens',       label: 'Spirit Lens',      icon: Eye      },
+  { id: 'dashboard',  label: 'Dojo Score',       icon: Compass  },
 ];
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, appMode, setAppMode, xp = 120 }) => {
+export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   const [stuck, setStuck] = useState(false);
   const lastY = useRef(0);
 
@@ -97,43 +95,16 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, appMode
             })}
           </nav>
 
-          {/* ── XP Badge + Mode Switcher ── */}
+          {/* ── Samurai Honours Button ── */}
           <div className="flex items-center space-x-2.5">
             <button
-              onClick={() => setActiveTab('gamification')}
-              className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-full bg-[rgba(201,162,74,0.12)] border border-[rgba(201,162,74,0.35)] text-xs font-bold text-[#fce38a] hover:bg-[rgba(201,162,74,0.22)] transition-all cursor-pointer"
-              title="Your Samurai Stargazer Honor XP"
+              type="button"
+              onClick={() => {}}
+              className="flex items-center space-x-1.5 px-4 py-1.5 rounded-full bg-[rgba(201,162,74,0.12)] border border-[rgba(201,162,74,0.4)] text-xs font-bold text-[#fce38a] hover:bg-[rgba(201,162,74,0.22)] transition-all cursor-pointer"
             >
               <Trophy className="w-3.5 h-3.5 text-[#c9a24a]" />
-              <span>{xp} XP</span>
+              <span>Samurai Honours</span>
             </button>
-
-            <div className="flex items-center bg-[#0a0e12] border border-[rgba(223,231,224,0.1)] rounded-full p-1 text-xs">
-              <button
-                onClick={() => setAppMode('live')}
-                className={`flex items-center space-x-1 px-2.5 py-1 rounded-full transition-all duration-200 cursor-pointer ${
-                  appMode === 'live'
-                    ? 'bg-[#e0231c] text-white font-semibold shadow-md shadow-[rgba(224,35,28,0.4)]'
-                    : 'text-[#aab4ad] hover:text-[#dfe7e0]'
-                }`}
-                title="Fetches live data through n8n orchestration webhooks or Open-Meteo"
-              >
-                <Flame className="w-3 h-3 text-amber-200 animate-pulse" />
-                <span>Live</span>
-              </button>
-              <button
-                onClick={() => setAppMode('demo')}
-                className={`flex items-center space-x-1 px-2.5 py-1 rounded-full transition-all duration-200 cursor-pointer ${
-                  appMode === 'demo'
-                    ? 'bg-[rgba(201,162,74,0.2)] text-[#fce38a] border border-[rgba(201,162,74,0.4)] font-semibold'
-                    : 'text-[#aab4ad] hover:text-[#dfe7e0]'
-                }`}
-                title="Uses verified offline fallback datasets for testing"
-              >
-                <Moon className="w-3 h-3" />
-                <span>Demo</span>
-              </button>
-            </div>
           </div>
         </div>
 

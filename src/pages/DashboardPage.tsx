@@ -182,13 +182,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {[
           {
-            id: 'sanctuary' as const,
-            icon: <Landmark className="w-5 h-5" />,
-            iconCls: 'bg-[rgba(224,35,28,0.25)] border-[rgba(224,35,28,0.5)] text-[#ff5a3c]',
-            title: '3D Temple Sanctuary',
-            desc: 'Step into the full Kyoto mountain temple with live Three.js shaders, blood moon, cloth physics and embers.',
-          },
-          {
             id: 'watchtower' as const,
             icon: <Shield className="w-5 h-5" />,
             iconCls: 'bg-[rgba(224,35,28,0.18)] border-[rgba(224,35,28,0.4)] text-[#ff5a3c]',
@@ -208,6 +201,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             iconCls: 'bg-purple-500/20 border-purple-500/40 text-purple-300',
             title: 'Spirit Lens',
             desc: 'Enhance deep-sky photos using verifiable contrast algorithms without synthetic AI star hallucination.',
+          },
+          {
+            id: 'sanctuary' as const,
+            icon: <Landmark className="w-5 h-5" />,
+            iconCls: 'bg-[rgba(224,35,28,0.25)] border-[rgba(224,35,28,0.5)] text-[#ff5a3c]',
+            title: '3D Temple Sanctuary',
+            desc: 'Step into the full Kyoto mountain temple with live Three.js shaders, blood moon, cloth physics and embers.',
           },
         ].map(({ id, icon, iconCls, title, desc }) => (
           <div
