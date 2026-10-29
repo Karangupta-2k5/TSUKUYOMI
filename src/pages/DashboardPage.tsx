@@ -26,13 +26,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
 
   return (
     <div className="space-y-8 animate-fadeIn">
-      {/* Hero Welcome Banner */}
-      <div className="relative rounded-3xl overflow-hidden celestial-card p-6 sm:p-10 border border-[#e6c35c]/25">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-[#c93b2b]/15 via-[#e6c35c]/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-        
+
+      {/* ── Hero Banner (torii-hero.png as atmospheric bg) ── */}
+      <div className="hero-banner celestial-card p-6 sm:p-10">
+        {/* Parallax-style bg image layer */}
+        <div className="hero-banner-bg" aria-hidden />
+        {/* Overlay gradient */}
+        <div className="hero-banner-gradient" aria-hidden />
+
+        {/* Content */}
         <div className="relative z-10 max-w-3xl space-y-4">
-          <div className="flex items-center space-x-2">
-            <span className="font-japanese text-xs px-2 py-0.5 rounded border border-[#c93b2b]/40 bg-[#c93b2b]/10 text-[#ff8b7b]">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-japanese text-xs px-2 py-0.5 rounded border border-[rgba(224,35,28,0.4)] bg-[rgba(224,35,28,0.1)] text-[#ff5a3c]">
               夜の誉れ • THE CELESTIAL VOW
             </span>
             {appMode === 'demo' && (
@@ -42,52 +47,62 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             )}
           </div>
 
-          <h1 className="font-celestial text-3xl sm:text-5xl font-black text-white tracking-wide">
+          <h1 className="font-celestial text-3xl sm:text-5xl font-black text-[#dfe7e0] tracking-wide">
             Guardians of the Night Sky
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
-            Welcome, stargazer. Tsukuyomi Watch harmonizes real-time atmospheric clarity, transparent celestial heuristics, and curated orbital chronologies into one unified dashboard.
+          <p className="text-sm sm:text-base text-[#aab4ad] leading-relaxed">
+            Welcome, stargazer. Tsukuyomi Watch harmonizes real-time atmospheric clarity,
+            transparent celestial heuristics, and curated orbital chronologies into one unified dashboard.
           </p>
 
           {/* Quick Stats Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3">
-            <div className="bg-[#07090e]/70 border border-white/5 rounded-xl p-3">
-              <span className="text-[10px] uppercase tracking-wider text-slate-400 block mb-1">Sanctum</span>
-              <div className="flex items-center space-x-1 text-xs font-semibold text-white truncate">
-                <MapPin className="w-3.5 h-3.5 text-[#c93b2b] shrink-0" />
-                <span className="truncate">{selectedLocation.name}</span>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+            {[
+              {
+                label: 'Sanctum',
+                icon: <MapPin className="w-3.5 h-3.5 text-[#e0231c] shrink-0" />,
+                value: <span className="truncate">{selectedLocation.name}</span>,
+              },
+              {
+                label: 'Temperature',
+                icon: <Thermometer className="w-3.5 h-3.5 text-amber-400" />,
+                value: `${weatherData.conditions.temperatureC ?? 4}°C`,
+              },
+              {
+                label: 'Atmospheric Dew',
+                icon: <Droplets className="w-3.5 h-3.5 text-cyan-400" />,
+                value: `${weatherData.conditions.humidityPct}% RH`,
+              },
+              {
+                label: 'Night Wind',
+                icon: <Wind className="w-3.5 h-3.5 text-emerald-400" />,
+                value: `${weatherData.conditions.windSpeedKmh ?? 12} km/h`,
+              },
+            ].map(({ label, icon, value }) => (
+              <div key={label} className="bg-[rgba(5,7,10,0.72)] border border-[rgba(223,231,224,0.08)] rounded-xl p-3">
+                <span className="text-[10px] uppercase tracking-wider text-[#78837c] block mb-1">{label}</span>
+                <div className="flex items-center space-x-1 text-xs font-semibold text-[#dfe7e0] truncate">
+                  {icon}
+                  <span>{value}</span>
+                </div>
               </div>
-            </div>
-
-            <div className="bg-[#07090e]/70 border border-white/5 rounded-xl p-3">
-              <span className="text-[10px] uppercase tracking-wider text-slate-400 block mb-1">Temperature</span>
-              <div className="flex items-center space-x-1 text-xs font-semibold text-white">
-                <Thermometer className="w-3.5 h-3.5 text-amber-400" />
-                <span>{weatherData.conditions.temperatureC ?? 4}°C</span>
-              </div>
-            </div>
-
-            <div className="bg-[#07090e]/70 border border-white/5 rounded-xl p-3">
-              <span className="text-[10px] uppercase tracking-wider text-slate-400 block mb-1">Atmospheric Dew</span>
-              <div className="flex items-center space-x-1 text-xs font-semibold text-white">
-                <Droplets className="w-3.5 h-3.5 text-cyan-400" />
-                <span>{weatherData.conditions.humidityPct}% RH</span>
-              </div>
-            </div>
-
-            <div className="bg-[#07090e]/70 border border-white/5 rounded-xl p-3">
-              <span className="text-[10px] uppercase tracking-wider text-slate-400 block mb-1">Night Wind</span>
-              <div className="flex items-center space-x-1 text-xs font-semibold text-white">
-                <Wind className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{weatherData.conditions.windSpeedKmh ?? 12} km/h</span>
-              </div>
-            </div>
+            ))}
           </div>
+        </div>
+
+        {/* Decorative corner logo stamp */}
+        <div className="absolute bottom-6 right-6 z-10 hidden sm:block">
+          <img
+            src="/tsukuyomi-logo.jpg"
+            alt=""
+            className="w-20 h-20 rounded-full object-cover border border-[rgba(201,162,74,0.3)] opacity-30"
+            aria-hidden
+          />
         </div>
       </div>
 
-      {/* Main Core Modules: Score Gauge & Moon Phase */}
+      {/* ── Score Gauge + Moon Phase ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <div className="lg:col-span-7">
           <HonorScoreGauge
@@ -102,16 +117,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
           <MoonPhaseCard data={moonData} />
 
-          {/* Quick Action Sanctum Card */}
-          <div className="celestial-card rounded-2xl p-5 border border-white/10 flex items-center justify-between">
+          {/* Quick Action — Sanctuary Card */}
+          <div className="celestial-card rounded-2xl p-5 border border-[rgba(223,231,224,0.1)] flex items-center justify-between">
             <div className="space-y-1">
-              <span className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Active Sanctuary</span>
-              <h4 className="font-celestial text-sm font-bold text-white">{selectedLocation.displayName || selectedLocation.name}</h4>
-              <p className="text-xs text-slate-400">Elevation: {selectedLocation.elevation ?? 2300}m</p>
+              <span className="text-[10px] uppercase tracking-widest text-[#78837c] font-semibold">Active Sanctuary</span>
+              <h4 className="font-celestial text-sm font-bold text-[#dfe7e0]">{selectedLocation.displayName || selectedLocation.name}</h4>
+              <p className="text-xs text-[#78837c]">Elevation: {selectedLocation.elevation ?? 2300}m</p>
             </div>
             <button
               onClick={() => onNavigate('watchtower')}
-              className="flex items-center space-x-1 text-xs font-semibold bg-[#c93b2b] hover:bg-[#e84534] text-white px-4 py-2.5 rounded-xl shadow-lg shadow-[#c93b2b]/30 transition-all shrink-0"
+              className="flex items-center space-x-1 text-xs font-semibold bg-[#e0231c] hover:bg-[#ff5a3c] text-white px-4 py-2.5 rounded-xl shadow-lg shadow-[rgba(224,35,28,0.3)] transition-all shrink-0"
             >
               <span>Explore Map</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -120,16 +135,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       </div>
 
-      {/* Highlights & Upcoming Events Preview */}
+      {/* ── Upcoming Events Preview ── */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Sparkles className="w-4 h-4 text-[#e6c35c]" />
-            <h2 className="font-celestial text-xl font-bold text-white">Next Celestial Horizon</h2>
+            <Sparkles className="w-4 h-4 text-[#c9a24a]" />
+            <h2 className="font-celestial text-xl font-bold text-[#dfe7e0]">Next Celestial Horizon</h2>
           </div>
           <button
             onClick={() => onNavigate('scroll')}
-            className="text-xs text-[#e6c35c] hover:underline flex items-center space-x-1"
+            className="text-xs text-[#c9a24a] hover:underline flex items-center space-x-1"
           >
             <span>View All Events</span>
             <ArrowRight className="w-3 h-3" />
@@ -144,52 +159,45 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         )}
       </div>
 
-      {/* Module Navigation Cards */}
+      {/* ── Module Navigation Cards ── */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <div 
-          onClick={() => onNavigate('watchtower')}
-          className="celestial-card p-5 rounded-2xl cursor-pointer hover:border-[#c93b2b]/60 transition-all group"
-        >
-          <div className="w-10 h-10 rounded-xl bg-[#c93b2b]/20 border border-[#c93b2b]/40 flex items-center justify-center text-[#ff8b7b] mb-3 group-hover:scale-105 transition-transform">
-            <Shield className="w-5 h-5" />
+        {[
+          {
+            id: 'watchtower' as const,
+            icon: <Shield className="w-5 h-5" />,
+            iconCls: 'bg-[rgba(224,35,28,0.18)] border-[rgba(224,35,28,0.4)] text-[#ff5a3c]',
+            title: 'Watchtower Observation',
+            desc: 'Pinpoint dark sky sanctuaries, query live Open-Meteo forecasts, and inspect transparent Night Honor ratings.',
+          },
+          {
+            id: 'scroll' as const,
+            icon: <Compass className="w-5 h-5" />,
+            iconCls: 'bg-[rgba(201,162,74,0.18)] border-[rgba(201,162,74,0.4)] text-[#c9a24a]',
+            title: 'Celestial Scroll',
+            desc: 'Follow rocket launches alongside annual meteor shower peaks and solar eclipses with distinct categorization.',
+          },
+          {
+            id: 'lens' as const,
+            icon: <Eye className="w-5 h-5" />,
+            iconCls: 'bg-purple-500/20 border-purple-500/40 text-purple-300',
+            title: 'Spirit Lens',
+            desc: 'Enhance deep-sky photos using verifiable contrast algorithms without synthetic AI star hallucination.',
+          },
+        ].map(({ id, icon, iconCls, title, desc }) => (
+          <div
+            key={id}
+            onClick={() => onNavigate(id)}
+            className="celestial-card p-5 rounded-2xl cursor-pointer hover:border-[rgba(201,162,74,0.4)] transition-all group"
+          >
+            <div className={`w-10 h-10 rounded-xl border flex items-center justify-center mb-3 group-hover:scale-105 transition-transform ${iconCls}`}>
+              {icon}
+            </div>
+            <h3 className="font-celestial text-base font-bold text-[#dfe7e0] group-hover:text-[#c9a24a] transition-colors mb-1">
+              {title}
+            </h3>
+            <p className="text-xs text-[#78837c]">{desc}</p>
           </div>
-          <h3 className="font-celestial text-base font-bold text-white group-hover:text-[#e6c35c] transition-colors mb-1">
-            Watchtower Observation
-          </h3>
-          <p className="text-xs text-slate-400">
-            Pinpoint dark sky sanctuaries, query live Open-Meteo forecasts, and inspect transparent Night Honor ratings.
-          </p>
-        </div>
-
-        <div 
-          onClick={() => onNavigate('scroll')}
-          className="celestial-card p-5 rounded-2xl cursor-pointer hover:border-[#e6c35c]/60 transition-all group"
-        >
-          <div className="w-10 h-10 rounded-xl bg-[#e6c35c]/20 border border-[#e6c35c]/40 flex items-center justify-center text-[#e6c35c] mb-3 group-hover:scale-105 transition-transform">
-            <Compass className="w-5 h-5" />
-          </div>
-          <h3 className="font-celestial text-base font-bold text-white group-hover:text-[#e6c35c] transition-colors mb-1">
-            Celestial Scroll
-          </h3>
-          <p className="text-xs text-slate-400">
-            Follow rocket launches alongside annual meteor shower peaks and solar eclipses with distinct categorization.
-          </p>
-        </div>
-
-        <div 
-          onClick={() => onNavigate('lens')}
-          className="celestial-card p-5 rounded-2xl cursor-pointer hover:border-[#e6c35c]/60 transition-all group"
-        >
-          <div className="w-10 h-10 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 mb-3 group-hover:scale-105 transition-transform">
-            <Eye className="w-5 h-5" />
-          </div>
-          <h3 className="font-celestial text-base font-bold text-white group-hover:text-[#e6c35c] transition-colors mb-1">
-            Spirit Lens
-          </h3>
-          <p className="text-xs text-slate-400">
-            Enhance deep-sky photos using verifiable contrast algorithms without synthetic AI star hallucination.
-          </p>
-        </div>
+        ))}
       </div>
     </div>
   );
