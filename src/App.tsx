@@ -6,6 +6,8 @@ import { CelestialScrollPage } from './pages/CelestialScrollPage';
 import { SpiritLensPage } from './pages/SpiritLensPage';
 import { Scene } from './components/Scene';
 import { SamuraiGamificationHub, QuestItem } from './components/SamuraiGamificationHub';
+import { SkyLanternSideDrawer } from './components/SkyLanternLens';
+import { TransientSideDrawer } from './components/TransientAnalysis';
 import { AppMode, LocationCoordinates, WeatherScoreResponse, CelestialEvent } from './types';
 import { CANDIDATE_LOCATIONS, MOCK_WEATHER_SCORE, MOCK_MOON_PHASE, MOCK_CELESTIAL_EVENTS } from './data/mockData';
 import { fetchWeatherScore, fetchCelestialEvents } from './lib/api';
@@ -72,6 +74,10 @@ export const App: React.FC = () => {
   const [quests, setQuests] = useState<QuestItem[]>(INITIAL_QUESTS);
   const [xp, setXp] = useState<number>(120); // Starting base XP
   const [xpToast, setXpToast] = useState<{ title: string; xp: number } | null>(null);
+
+  // Side Drawer States for NASA SkyView & Transient Analysis Lab
+  const [isSkyLanternOpen, setIsSkyLanternOpen] = useState<boolean>(false);
+  const [isTransientOpen, setIsTransientOpen] = useState<boolean>(false);
 
   const completeQuest = useCallback((questId: string) => {
     setQuests((prev) => {
@@ -185,6 +191,28 @@ export const App: React.FC = () => {
         appMode={appMode}
         setAppMode={setAppMode}
         xp={xp}
+      />
+
+      {/* ── NASA SkyView Virtual Observatory (Sky Lantern Lens) Sidecar Console ── */}
+      <SkyLanternSideDrawer
+        isOpen={isSkyLanternOpen}
+        onOpenChange={setIsSkyLanternOpen}
+        onAwardXp={(pts, title) => {
+          setXp((curr) => curr + pts);
+          setXpToast({ title, xp: pts });
+          setTimeout(() => setXpToast(null), 4000);
+        }}
+      />
+
+      {/* ── Transient Spectral & Time-Domain Divination Lab Sidecar Console ── */}
+      <TransientSideDrawer
+        isOpen={isTransientOpen}
+        onOpenChange={setIsTransientOpen}
+        onAwardXp={(pts, title) => {
+          setXp((curr) => curr + pts);
+          setXpToast({ title, xp: pts });
+          setTimeout(() => setXpToast(null), 4000);
+        }}
       />
 
       {/* ── Page Shell ── */}

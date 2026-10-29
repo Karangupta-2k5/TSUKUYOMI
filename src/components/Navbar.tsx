@@ -99,7 +99,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           <div className="flex items-center space-x-2.5">
             <button
               type="button"
-              onClick={() => {}}
+              onClick={() => setActiveTab('gamification')}
               className="flex items-center space-x-1.5 px-4 py-1.5 rounded-full bg-[rgba(201,162,74,0.12)] border border-[rgba(201,162,74,0.4)] text-xs font-bold text-[#fce38a] hover:bg-[rgba(201,162,74,0.22)] transition-all cursor-pointer"
             >
               <Trophy className="w-3.5 h-3.5 text-[#c9a24a]" />
