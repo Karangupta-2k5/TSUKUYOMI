@@ -1,14 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Navbar, SectionId } from './components/Navbar';
 import { DashboardPage } from './pages/DashboardPage';
-import { WatchtowerPage } from './pages/WatchtowerPage';
+import WatchtowerModule from './watchtower/WatchtowerModule';
 import { CelestialScrollPage } from './pages/CelestialScrollPage';
 import { SpiritLensPage } from './pages/SpiritLensPage';
 import { Scene } from './components/Scene';
 import { SamuraiGamificationHub, QuestItem } from './components/SamuraiGamificationHub';
 import { AppMode, LocationCoordinates, WeatherScoreResponse, CelestialEvent } from './types';
 import { CANDIDATE_LOCATIONS, MOCK_WEATHER_SCORE, MOCK_MOON_PHASE, MOCK_CELESTIAL_EVENTS } from './data/mockData';
-import { fetchWeatherScore, searchGeocode, fetchCelestialEvents } from './lib/api';
+import { fetchWeatherScore, fetchCelestialEvents } from './lib/api';
 import { Moon, Shield, ChevronDown, Trophy, Sparkles, ArrowUp } from 'lucide-react';
 
 const INITIAL_QUESTS: QuestItem[] = [
@@ -151,27 +151,11 @@ export const App: React.FC = () => {
     fetchCelestialEvents(appMode).then(setEvents);
   }, [appMode]);
 
-  const handleSelectLocation = (loc: LocationCoordinates) => {
+  // Location chosen inside the Watchtower module -> sync Dojo + award quest XP
+  const handleSelectLocation = useCallback((loc: LocationCoordinates) => {
     setSelectedLocation(loc);
     completeQuest('quest-sanctuary');
-  };
-
-  const handleSearchLocation = async (query: string) => {
-    try {
-      setIsLoadingWeather(true);
-      const results = await searchGeocode(query);
-      if (results.length > 0) {
-        setSelectedLocation(results[0]);
-        completeQuest('quest-sanctuary');
-      } else {
-        alert(`No location found for "${query}". Try another landmark.`);
-      }
-    } catch (err: any) {
-      alert(`Geocoding error: ${err.message}`);
-    } finally {
-      setIsLoadingWeather(false);
-    }
-  };
+  }, [completeQuest]);
 
   return (
     <>
@@ -278,14 +262,16 @@ export const App: React.FC = () => {
               <span className="font-japanese text-xs text-[#c9a24a]">Watchtower Dark-Sky Sanctuary Map</span>
             </div>
 
-            <WatchtowerPage
-              currentLocation={selectedLocation}
-              weatherData={weatherData}
-              onSelectLocation={handleSelectLocation}
-              onSearchLocation={handleSearchLocation}
-              isLoading={isLoadingWeather}
-              appMode={appMode}
-              errorMessage={errorMessage}
+            <WatchtowerModule
+              onLocationChosen={(loc) =>
+                handleSelectLocation({
+                  name: loc.name,
+                  country: loc.country,
+                  latitude: loc.latitude,
+                  longitude: loc.longitude,
+                  displayName: loc.displayName,
+                })
+              }
             />
           </section>
 

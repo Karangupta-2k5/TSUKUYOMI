@@ -29,3 +29,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Python (Watchtower FastAPI backend)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/

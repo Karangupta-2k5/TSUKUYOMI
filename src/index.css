@@ -1,5 +1,33 @@
 @import "tailwindcss";
 
+/* Watchtower module theme tokens (namespaced wt-* so no other section is affected) */
+@theme {
+  --color-wt-ink: #0a0a14;
+  --color-wt-ink-mid: #12121f;
+  --color-wt-ink-soft: #1a1a2e;
+  --color-wt-torii: #c0392b;
+  --color-wt-torii-light: #e74c3c;
+  --color-wt-gold: #d4af37;
+  --color-wt-gold-dim: #b8922e;
+  --color-wt-parchment: #e8dcc8;
+  --color-wt-parchment-dim: #c8b89a;
+  --color-wt-mist: rgba(232, 220, 200, 0.07);
+
+  --font-wt-serif: "IM Fell English", Georgia, serif;
+  --font-wt-display: "Cinzel Decorative", serif;
+  --font-wt-title: "Cinzel", serif;
+
+  --animate-wt-shimmer: wt-shimmer 2s ease-in-out infinite;
+  --animate-wt-pulse_ring: wt-pulse-ring 1.8s ease-out infinite;
+  --animate-wt-fadeIn: wt-fade-in 0.35s ease both;
+  --animate-wt-spin_slow: wt-spin-slow 8s linear infinite;
+
+  @keyframes wt-shimmer { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+  @keyframes wt-pulse-ring { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.2); opacity: 0; } }
+  @keyframes wt-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes wt-spin-slow { to { transform: rotate(360deg); } }
+}
+
 @layer base {
   :root {
     /* Kage-inspired refined palette */

@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=IM+Fell+English:ital@0;1&display=swap');
+
+/* Watchtower module (teammate build) - styles scoped under .wt-root */
+.wt-root ::-webkit-scrollbar { width: 5px; height: 5px; }
+.wt-root ::-webkit-scrollbar-track { background: transparent; }
+.wt-root ::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.2); border-radius: 3px; }
+.wt-root ::-webkit-scrollbar-thumb:hover { background: rgba(212,175,55,0.4); }
+
+.wt-root .leaflet-container { z-index: 0; }
+.wt-root .leaflet-control-attribution { font-size: 10px; }
+.wt-root .leaflet-pane,
+.wt-root .leaflet-tile-pane,
+.wt-root .leaflet-map-pane { z-index: 0; }
+
+.wt-root .leaflet-popup-content-wrapper {
+  background: #12121f;
+  border: 1px solid rgba(212,175,55,0.25);
+  border-radius: 8px;
+  color: #e8dcc8;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+.wt-root .leaflet-popup-tip { background: #12121f; }
+.wt-root .leaflet-popup-content { font-family: Georgia, serif; font-size: 13px; line-height: 1.5; }
+.wt-root .leaflet-popup-content b { font-family: 'Cinzel', serif; color: #d4af37; }
+.wt-root .leaflet-popup-content a { color: #a29bfe; }
+.wt-root .leaflet-popup-close-button { color: rgba(232,220,200,0.4) !important; }
