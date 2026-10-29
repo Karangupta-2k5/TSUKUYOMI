@@ -881,6 +881,50 @@ body[data-layout-footer="b"] .foot-base span:last-child{ text-align:right; }
   [data-rv]{ opacity:1 !important; transform:none !important; }
   .mask-line > span,.word{ opacity:1 !important; transform:none !important; }
 }
+
+/* =============================================================
+   CLEAN MINIMAL UI OVERLAY
+   Hides predetermined textual information from the ThreeUI/Kage template
+   while keeping all 3D WebGL scenes, camera tracks, shaders, and UI controls intact.
+   ============================================================= */
+.brand-tx i,
+.hero-top,
+.hero-side,
+.gate-grid h2,
+.gate-grid .gate-copy p,
+.gate-stats,
+.sec-head .k:not(.jp),
+.card-meta,
+.card-lab b,
+.les h3,
+.les p,
+.les .t,
+.fin .eyebrow,
+.fin .display,
+.fin .body-lg,
+.foot-brand p,
+.foot-grid > div:not(.foot-brand),
+.foot-base span:first-child,
+.foot-base span:last-child {
+  display: none !important;
+}
+
+.hero-foot {
+  margin-top: auto;
+}
+
+.sec-head {
+  justify-content: flex-end;
+}
+
+.fin {
+  min-height: 70vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
 </style>
 </head>
 <body data-layout-hero="b" data-layout-story="b" data-layout-gallery="b"
