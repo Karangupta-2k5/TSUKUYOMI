@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tsukuyomi Watch — PECathon 2026 Pitch Deck (8 Slides)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&family=Noto+Serif+JP:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep: #05070a;
+      --bg-card: #0b0f17;
+      --bg-card-alt: #101622;
+      --gold: #c9a24a;
+      --gold-bright: #fce38a;
+      --crimson: #e0231c;
+      --text-main: #dfe7e0;
+      --text-muted: #8b968f;
+      --emerald: #34d399;
+      --cyan: #38bdf8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg-deep);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      user-select: none;
+    }
+
+    /* Ambient Starfield Background */
+    .starfield {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 80% 15%, rgba(224, 35, 28, 0.14), transparent 35%),
+        radial-gradient(circle at 20% 80%, rgba(201, 162, 74, 0.12), transparent 40%),
+        linear-gradient(180deg, #040609 0%, #090d15 50%, #05070a 100%);
+      z-index: 0;
+    }
+
+    .deck-container {
+      position: relative;
+      z-index: 10;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Presenter Header */
+    .deck-topbar {
+      height: 54px;
+      padding: 0 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(201, 162, 74, 0.2);
+      background: rgba(5, 7, 10, 0.85);
+      backdrop-filter: blur(12px);
+    }
+
+    .brand-pill {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-title {
+      font-family: 'Cinzel', serif;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      font-size: 15px;
+      color: #fff;
+    }
+
+    .jp-badge {
+      font-family: 'Noto Serif JP', serif;
+      font-size: 11px;
+      color: var(--crimson);
+      background: rgba(224, 35, 28, 0.12);
+      border: 1px solid rgba(224, 35, 28, 0.45);
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .team-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--gold-bright);
+      background: rgba(201, 162, 74, 0.12);
+      border: 1px solid rgba(201, 162, 74, 0.35);
+      padding: 4px 12px;
+      border-radius: 999px;
+    }
+
+    /* Slide Viewport */
+    .slides-viewport {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 42px 64px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      opacity: 0;
+      transform: translateX(40px) scale(0.98);
+      pointer-events: none;
+      transition: all 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+      pointer-events: auto;
+    }
+
+    .slide-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: var(--crimson);
+      margin-bottom: 10px;
+    }
+
+    .slide-kicker span.jp {
+      color: var(--gold);
+      font-family: 'Noto Serif JP', serif;
+    }
+
+    .slide-title {
+      font-family: 'Cinzel', serif;
+      font-size: 38px;
+      font-weight: 800;
+      color: #ffffff;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+
+    .slide-subtitle {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 920px;
+      line-height: 1.5;
+      margin-bottom: 28px;
+    }
+
+    /* Grid Layouts */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+
+    .card {
+      background: rgba(11, 15, 23, 0.88);
+      border: 1px solid rgba(201, 162, 74, 0.28);
+      border-radius: 16px;
+      padding: 22px 24px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--crimson), var(--gold));
+    }
+
+    .card-title {
+      font-family: 'Cinzel', serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--gold-bright);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card p, .card li {
+      font-size: 13.5px;
+      color: var(--text-main);
+      line-height: 1.55;
+    }
+
+    .card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .card ul li::before {
+      content: '✦ ';
+      color: var(--gold);
+      font-weight: bold;
+    }
+
+    .stat-big {
+      font-family: 'Cinzel', serif;
+      font-size: 34px;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 4px 0;
+    }
+
+    .code-pill {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: var(--gold-bright);
+      margin-top: 10px;
+      display: block;
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .badge {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: rgba(201, 162, 74, 0.15);
+      border: 1px solid rgba(201, 162, 74, 0.4);
+      color: var(--gold-bright);
+    }
+
+    .badge.crimson {
+      background: rgba(224, 35, 28, 0.15);
+      border-color: rgba(224, 35, 28, 0.45);
+      color: #ff8e88;
+    }
+
+    .badge.emerald {
+      background: rgba(52, 211, 153, 0.12);
+      border-color: rgba(52, 211, 153, 0.4);
+      color: var(--emerald);
+    }
+
+    /* Table Styling */
+    .schema-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+
+    .schema-table th {
+      text-align: left;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--gold);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 6px 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+    }
+
+    .schema-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Bottom Navigation Controls */
+    .deck-footer {
+      height: 58px;
+      padding: 0 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid rgba(201, 162, 74, 0.2);
+      background: rgba(5, 7, 10, 0.9);
+    }
+
+    .dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 28px;
+      height: 6px;
+      border-radius: 99px;
+      background: rgba(255, 255, 255, 0.15);
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .dot.active {
+      width: 48px;
+      background: linear-gradient(90deg, var(--crimson), var(--gold));
+    }
+
+    .nav-btns {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      background: rgba(201, 162, 74, 0.14);
+      border: 1px solid rgba(201, 162, 74, 0.45);
+      color: var(--gold-bright);
+      font-family: 'Inter', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn:hover {
+      background: var(--crimson);
+      border-color: var(--crimson);
+      color: #fff;
+    }
+
+    @media print {
+      body {
+        overflow: visible;
+        height: auto;
+      }
+      .deck-topbar, .deck-footer {
+        display: none;
+      }
+      .slides-viewport {
+        overflow: visible;
+      }
+      .slide {
+        position: relative;
+        opacity: 1 !important;
+        transform: none !important;
+        pointer-events: auto !important;
+        page-break-after: always;
+        height: 100vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="starfield"></div>
+
+  <div class="deck-container">
+    <!-- Top Bar -->
+    <header class="deck-topbar">
+      <div class="brand-pill">
+        <span class="brand-title">TSUKUYOMI WATCH</span>
+        <span class="jp-badge">月読命 • 侍の天体案内</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:14px;">
+        <span class="team-tag">PECathon 2026 • Team PF-XBZYZH</span>
+        <span id="slideCounter" style="font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--text-muted);">Slide 1 / 8</span>
+      </div>
+    </header>
+
+    <!-- Slides Viewport -->
+    <main class="slides-viewport">
+
+      <!-- =================================================================
+           SLIDE 1: TITLE & VISION
+           ================================================================= -->
+      <section class="slide active" data-index="0">
+        <div class="slide-kicker">
+          <span>PECATHON 2026 OFFICIAL SUBMISSION</span>
+          <span class="jp">• 月読命</span>
+        </div>
+        <h1 class="slide-title" style="font-size:52px; max-width:950px;">
+          TSUKUYOMI WATCH<br />
+          <span style="color:var(--gold-bright); font-size:34px;">The Samurai’s Celestial Guide</span>
+        </h1>
+        <p class="slide-subtitle" style="font-size:18px; max-width:860px;">
+          An end-to-end scientific astrophotography restoration, Photutils/Astropy celestial source detector, real-time authoritative ephemeris observatory, and Supabase-powered citizen science platform.
+        </p>
+
+        <div class="grid-4" style="margin-top:12px;">
+          <div class="card">
+            <div class="card-title"><span>I. Watchtower</span><span>望楼</span></div>
+            <p>Interactive dark-sky sanctuary cartography, Overpass observatory discovery &amp; transparent Night Honor Score.</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span>II. Spirit Lens</span><span>霊鏡</span></div>
+            <p>Real-ESRGAN &amp; deterministic CLAHE restoration + Photutils/Astropy star &amp; galaxy candidate detection.</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span>III. Live Ephemeris</span><span>天象</span></div>
+            <p>Zero-fabrication telemetry powered by US Naval Observatory (USNO), IMCCE OPALE &amp; Open-Meteo APIs.</p>
+          </div>
+          <div class="card">
+            <div class="card-title"><span>IV. Samurai Honours</span><span>誉れ</span></div>
+            <p>Auth-gated Chapter V page with 88 IAU constellations, EXIF anti-AI verification &amp; Supabase Cloud DB.</p>
+          </div>
+        </div>
+
+        <div class="badge-row" style="margin-top:26px;">
+          <span class="badge emerald">● Live Production: https://tsukuyomi-watch-mu.vercel.app</span>
+          <span class="badge">GitHub: PECathon-2026/Team-PF-XBZYZH</span>
+          <span class="badge crimson">41 / 41 Automated Pytest Suite Passing</span>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           SLIDE 2: THE PROBLEM STATEMENT
+           ================================================================= -->
+      <section class="slide" data-index="1">
+        <div class="slide-kicker">
+          <span>01 • THE PROBLEM LANDSCAPE</span>
+          <span class="jp">• 課題の背景</span>
+        </div>
+        <h2 class="slide-title">Why Amateur &amp; Citizen Astronomy Tools Fail Today</h2>
+        <p class="slide-subtitle">
+          Stargazers, astrophotographers, and students face four critical barriers between capturing the night sky and extracting trustworthy scientific insight.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">1. AI Hallucination in Astrophotography</div>
+            <p>Consumer AI "night mode" enhancers invent fake stars and synthetic nebulae, destroying photometric integrity and making images scientifically unusable.</p>
+            <code class="code-pill">Need: Non-destructive restoration + original vs. restored source cross-matching</code>
+          </div>
+
+          <div class="card">
+            <div class="card-title">2. Opaque "Black-Box" Weather Scores</div>
+            <p>Existing stargazing apps show arbitrary visibility percentages without disclosing mathematical weights, sensor limitations, or forecast vs. live telemetry distinctions.</p>
+            <code class="code-pill">Need: Transparent heuristic formula + dynamic weight rebalancing</code>
+          </div>
+
+          <div class="card">
+            <div class="card-title">3. Fragmented Ephemeris &amp; Multi-Spectral Data</div>
+            <p>Checking lunar phases (USNO), eclipse totality (IMCCE), rocket launches, and multi-wavelength sky surveys (NASA SkyView) requires switching across 6+ legacy portals.</p>
+            <code class="code-pill">Need: Unified sanctuary console with local timezone normalization</code>
+          </div>
+
+          <div class="card">
+            <div class="card-title">4. Unverified Community Sky Catalogs</div>
+            <p>Astronomy leaderboards are flooded with AI-generated art or downloaded screenshots with stripped metadata rather than genuine optical camera captures.</p>
+            <code class="code-pill">Need: Hardware EXIF + GPS + Night-Window verification backed by Supabase</code>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           SLIDE 3: SYSTEM ARCHITECTURE
+           ================================================================= -->
+      <section class="slide" data-index="2">
+        <div class="slide-kicker">
+          <span>02 • FULL-STACK ARCHITECTURE</span>
+          <span class="jp">• システム構成</span>
+        </div>
+        <h2 class="slide-title">Scientific Full-Stack &amp; Cloud Architecture</h2>
+        <p class="slide-subtitle">
+          Decoupled dual-resilience architecture: high-speed React 19 + WebGL frontend on Vercel, scientific Python FastAPI engine, and live Supabase Cloud Postgres + Storage.
+        </p>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-title">Frontend Sanctuary (Vercel)</div>
+            <ul>
+              <li><strong>React 19 + TypeScript + Vite 8 + Tailwind v4</strong></li>
+              <li><strong>3D Kage Temple:</strong> Three.js WebGL particle &amp; shader sanctuary</li>
+              <li><strong>Interactive Cartography:</strong> Leaflet + Carto Dark Matter + Overpass API</li>
+              <li><strong>Client Resilience:</strong> Instant browser Canvas CLAHE &amp; 2D MAD source detector fallback</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Scientific Backend (FastAPI)</div>
+            <ul>
+              <li><strong>Astropy &amp; Photutils:</strong> <code>Background2D</code>, <code>DAOStarFinder</code>, <code>detect_sources</code>, <code>deblend_sources</code></li>
+              <li><strong>Real-ESRGAN + OpenCV:</strong> <code>SRVGGNetCompact</code> &amp; <code>RRDBNet</code> super-resolution</li>
+              <li><strong>Ephemeris &amp; Spectral Routers:</strong> USNO, IMCCE, Open-Meteo, NASA SkyView &amp; Transient Lab</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Supabase Cloud Persistence</div>
+            <ul>
+              <li><strong>Table 1 (<code>public.stargazer_users</code>):</strong> Auth profiles, Clan Crest, Honor XP, Rank &amp; Stamps</li>
+              <li><strong>Table 2 (<code>public.celestial_uploads</code>):</strong> Verified EXIF camera gear, GPS coords &amp; match scores</li>
+              <li><strong>Storage Bucket (<code>celestial-uploads</code>):</strong> Public binary hosting for sky exposures</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:20px; padding:16px 24px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+            <span style="font-family:'Cinzel',serif; font-weight:700; color:var(--gold-bright);">Navbar 5-Pillar Flow:</span>
+            <span class="badge">1) Watchtower</span>
+            <span style="color:var(--gold);">→</span>
+            <span class="badge">2) Celestial Scroll</span>
+            <span style="color:var(--gold);">→</span>
+            <span class="badge">3) Spirit Lens</span>
+            <span style="color:var(--gold);">→</span>
+            <span class="badge">4) Dojo Score</span>
+            <span style="color:var(--gold);">→</span>
+            <span class="badge crimson">5) Samurai Honours (Auth-Gated Dedicated Page)</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           SLIDE 4: SPIRIT LENS & PHOTUTILS ASTRO DETECTION
+           ================================================================= -->
+      <section class="slide" data-index="3">
+        <div class="slide-kicker">
+          <span>03 • CHAPTER III: SPIRIT LENS</span>
+          <span class="jp">• 鏡花水月 • 天体候補検出</span>
+        </div>
+        <h2 class="slide-title">Real-ESRGAN Restoration &amp; Photutils Source Detection</h2>
+        <p class="slide-subtitle">
+          Separates display transformations (`linear`, `percentile`, `log`, `asinh`) from raw floating-point photometric measurements (`ADU`) and cross-matches original vs. AI-restored frames.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">5-Stage Scientific Photometry Pipeline</div>
+            <ul>
+              <li><strong>1. Validation &amp; Decoding:</strong> Supports <code>JPEG</code>, <code>PNG</code>, <code>WebP</code>, <code>TIFF</code> &amp; astronomical <code>FITS</code> HDUs (<code>astropy.io.fits</code>), masking alpha transparency.</li>
+              <li><strong>2. 2D Spatially Varying Background:</strong> <code>Background2D</code> + <code>MedianBackground</code> with <code>SigmaClip(sigma=3.0)</code> on adaptive meshes to remove sky gradients &amp; vignetting.</li>
+              <li><strong>3. Point-Source (Star) Detection:</strong> <code>DAOStarFinder</code> + circular aperture photometry (<code>CircularAperture</code>) for unresolved stellar peaks.</li>
+              <li><strong>4. Extended-Source (Galaxy) Segmentation:</strong> 2D Gaussian PSF convolution + <code>detect_sources</code> + <code>deblend_sources</code> + <code>SourceCatalog</code> moment analysis.</li>
+              <li><strong>5. Original vs. Restored Cross-Match:</strong> Flags <code>restored_only</code> sources to prevent AI hallucinations from passing as real stars.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Per-Candidate Measured Properties</div>
+            <div class="grid-2" style="gap:12px; margin-top:8px;">
+              <div style="background:rgba(255,255,255,0.03); padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                <div style="font-size:11px; color:var(--text-muted);">ASTROMETRY &amp; FLUX</div>
+                <div style="font-size:13px; color:#fff; font-weight:600; margin-top:4px;">Centroid (x, y), BBox, Peak ADU, Segment &amp; Aperture Flux, SNR</div>
+              </div>
+              <div style="background:rgba(255,255,255,0.03); padding:10px 12px; border-radius:10px; border:1px solid rgba(255,255,255,0.08);">
+                <div style="font-size:11px; color:var(--text-muted);">MORPHOLOGY</div>
+                <div style="font-size:13px; color:#fff; font-weight:600; margin-top:4px;">FWHM (px), Area (px²), Semi-Major/Minor (a, b), Ellipticity (1−b/a)</div>
+              </div>
+            </div>
+            <code class="code-pill" style="margin-top:14px;">
+              Classifications: Star-Like Point Candidate | Extended-Source Candidate | Possible Galaxy | Uncertain / Artifact
+            </code>
+            <p style="margin-top:12px; font-size:12.5px; color:var(--text-muted);">
+              Includes interactive HTML5 Canvas zoom/pan overlays, 160×160 candidate cutout inspector, and 1-click <strong>CSV / JSON catalog export</strong>.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           SLIDE 5: LIVE EPHEMERIS & TRANSPARENT NIGHT HONOR SCORE
+           ================================================================= -->
+      <section class="slide" data-index="4">
+        <div class="slide-kicker">
+          <span>04 • CHAPTERS I, II &amp; IV: REAL ASTRONOMICAL TELEMETRY</span>
+          <span class="jp">• 望楼と夜の誉れ</span>
+        </div>
+        <h2 class="slide-title">Authoritative Public APIs &amp; Transparent Scoring</h2>
+        <p class="slide-subtitle">
+          Zero hardcoded dates or fabricated weather—every metric is dynamically fetched, cached with TTL resilience, and converted from UTC to the observer's local timezone.
+        </p>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-title">US Naval Observatory</div>
+            <div class="stat-big" style="color:var(--gold-bright);">USNO v4.0</div>
+            <p>Fetches official primary lunar phase milestones (`New Moon`, `First Quarter`, `Full Moon`, `Last Quarter`) and computes instantaneous illumination % and lunar age in days.</p>
+            <code class="code-pill">aa.usno.navy.mil/api/moon/phases/year</code>
+          </div>
+
+          <div class="card">
+            <div class="card-title">IMCCE OPALE Ephemeris</div>
+            <div class="stat-big" style="color:var(--crimson);">INPOP19A</div>
+            <p>Retrieves calculated lunar eclipses (`Total`, `Partial`, `Penumbral`), umbral magnitude, P1/P2 contact timestamps, and zenith coordinates at greatest eclipse.</p>
+            <code class="code-pill">opale.imcce.fr/api/v1/phenomena/eclipses</code>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Open-Meteo NWP Model</div>
+            <div class="stat-big" style="color:var(--emerald);">Hourly NWP</div>
+            <p>Queries dynamic coordinate cloud cover (%), 2m relative humidity (%), and optical visibility (m). Explicitly labeled as NWP forecast rather than live telescope feed.</p>
+            <code class="code-pill">api.open-meteo.com/v1/forecast</code>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+          <div class="card-title">Transparent Night Honor Score Mathematical Model</div>
+          <code class="code-pill" style="font-size:14px; text-align:center; color:#fff;">
+            Night Honor Score = (0.53 × ClearSky) + (0.29 × VisibilityScore) + (0.18 × HumidityScore)
+          </code>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           SLIDE 6: CHAPTER V — SAMURAI HONOURS & SUPABASE CLOUD DB
+           ================================================================= -->
+      <section class="slide" data-index="5">
+        <div class="slide-kicker">
+          <span>05 • CHAPTER V: SAMURAI HONOURS &amp; SUPABASE DATABASE</span>
+          <span class="jp">• 侍の誉れ</span>
+        </div>
+        <h2 class="slide-title">Auth-Gated Stargazer Page &amp; Supabase Cloud Schema</h2>
+        <p class="slide-subtitle">
+          Clicking <strong>Samurai Honours</strong> in the navbar authenticates the user via Supabase and opens the dedicated Chapter V web page with 88 constellations and EXIF-verified photo uploads.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">
+              <span>Table 1: public.stargazer_users</span>
+              <span class="badge emerald">LIVE</span>
+            </div>
+            <p>Stores Stargazer authentication credentials, Clan Crest avatar, Honor XP, Rank &amp; event seals.</p>
+            <table class="schema-table">
+              <thead>
+                <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>id</td><td>uuid (PK)</td><td>Primary Stargazer UUID</td></tr>
+                <tr><td>email</td><td>text (UNIQUE)</td><td>Login correspondence address</td></tr>
+                <tr><td>name / avatar</td><td>text</td><td>Display name &amp; Clan Crest (🌸, 🌙, 🦉)</td></tr>
+                <tr><td>password_hash</td><td>text</td><td>SHA-256 salted passphrase digest</td></tr>
+                <tr><td>honor_xp / rank_title</td><td>int / text</td><td>Accumulated XP &amp; computed rank</td></tr>
+                <tr><td>stamps</td><td>text[]</td><td>Earned cosmic event seals</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="card">
+            <div class="card-title">
+              <span>Table 2: public.celestial_uploads</span>
+              <span class="badge emerald">LIVE</span>
+            </div>
+            <p>Stores uploaded astrophotography in bucket <code>celestial-uploads</code> + 5-step EXIF hardware telemetry.</p>
+            <table class="schema-table">
+              <thead>
+                <tr><th>Column</th><th>Type</th><th>Description</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>id / user_id</td><td>uuid (PK/FK)</td><td>Upload ID &amp; foreign key to user</td></tr>
+                <tr><td>item_id / category</td><td>text</td><td>Target (con, planet, moon, deep, event)</td></tr>
+                <tr><td>camera_gear</td><td>text</td><td>EXIF Make &amp; Model (anti-GenAI check)</td></tr>
+                <tr><td>gps_latitude / lon</td><td>float8</td><td>Authenticated dark-sky GPS coordinates</td></tr>
+                <tr><td>image_url</td><td>text</td><td>Public URL in Supabase Storage bucket</td></tr>
+                <tr><td>exif_checks / honor</td><td>jsonb / int</td><td>5-point audit report &amp; XP awarded</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           SLIDE 7: SIDECAR OBSERVATORIES (NASA SKYVIEW & TRANSIENT LAB)
+           ================================================================= -->
+      <section class="slide" data-index="6">
+        <div class="slide-kicker">
+          <span>06 • MULTI-WAVELENGTH &amp; TIME-DOMAIN SIDECAR CONSOLES</span>
+          <span class="jp">• 天灯レンズと変光星解析</span>
+        </div>
+        <h2 class="slide-title">NASA SkyView Virtual Observatory &amp; Transient Lab</h2>
+        <p class="slide-subtitle">
+          Accessible from any chapter via floating right-edge drawers, bringing professional multi-spectral archival astronomy and relativistic Doppler spectroscopy into the browser.
+        </p>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">🏮 Sky Lantern Lens (NASA GSFC SkyView)</div>
+            <ul>
+              <li><strong>Multi-Wavelength Survey Cutouts:</strong> Queries Optical (<code>DSS2 Red</code>), Near-IR (<code>2MASS</code>), Mid-IR (<code>WISE 3.4μm</code>), UV (<code>GALEX</code>), and X-Ray (<code>ROSAT</code>).</li>
+              <li><strong>Simbad / Sesame Resolver:</strong> Resolves Messier/NGC catalog names (`M31`, `M42`, `M45`, `NGC 1068`) into J2000 RA/Dec coordinates.</li>
+              <li><strong>Side-by-Side Wavelength Reticle:</strong> Compare user astrophotography against archival NASA HEASARC plates.</li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="card-title">⚡ Transient Spectral &amp; Time-Domain Lab</div>
+            <ul>
+              <li><strong>Light-Curve &amp; Spectral Classification:</strong> Analyzes Type Ia / II Supernovae, Kilonovae, Tidal Disruption Events (TDE), and AGN flares.</li>
+              <li><strong>Relativistic Doppler Calculator:</strong> Computes expansion velocity $v/c$ from rest vs. observed absorption/emission lines ($\text{Si II } 6355\text{ \AA}$, $\text{H}\alpha\ 6563\text{ \AA}$).</li>
+              <li><strong>Web Audio API Sonification:</strong> Converts transient light curves into real-time astronomical audio sweeps.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           SLIDE 8: VERIFICATION, DEPLOYMENT & LIVE DEMO
+           ================================================================= -->
+      <section class="slide" data-index="7">
+        <div class="slide-kicker">
+          <span>07 • PRODUCTION DEPLOYMENT &amp; VERIFICATION</span>
+          <span class="jp">• 実証と展開</span>
+        </div>
+        <h2 class="slide-title">Tested, Deployed &amp; Ready for Live Exploration</h2>
+        <p class="slide-subtitle">
+          Rigorous automated test coverage across scientific image processing, live public ephemeris endpoints, and cloud database persistence.
+        </p>
+
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-title">Automated Test Suite</div>
+            <div class="stat-big" style="color:var(--emerald);">41 / 41</div>
+            <p>Passing backend `pytest` unit &amp; integration tests covering synthetic star/galaxy detection, FITS parsing, USNO/IMCCE/Open-Meteo APIs, and transient spectroscopy.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Cloud Database Status</div>
+            <div class="stat-big" style="color:var(--gold-bright);">Supabase</div>
+            <p>Live PostgreSQL tables (<code>stargazer_users</code>, <code>celestial_uploads</code>) + public Storage bucket (<code>celestial-uploads</code>) with RLS policies active.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Production Hosting</div>
+            <div class="stat-big" style="color:var(--cyan);">Vercel + Render</div>
+            <p>Zero-downtime global CDN deployment via <code>vercel.json</code> + containerized Python 3.11 scientific backend via <code>render.yaml</code> &amp; <code>Dockerfile</code>.</p>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top:22px; text-align:center; padding:24px;">
+          <div style="font-family:'Cinzel',serif; font-size:22px; font-weight:800; color:#fff; margin-bottom:8px;">
+            🌕 Explore Tsukuyomi Watch Live Now
+          </div>
+          <div style="font-family:'JetBrains Mono',monospace; font-size:15px; color:var(--gold-bright);">
+            Production App: <a href="https://tsukuyomi-watch-mu.vercel.app" target="_blank" style="color:var(--emerald); text-decoration:underline;">https://tsukuyomi-watch-mu.vercel.app</a>
+            &nbsp;&nbsp;|&nbsp;&nbsp;
+            GitHub: <a href="https://github.com/PECathon-2026/Team-PF-XBZYZH" target="_blank" style="color:var(--gold-bright); text-decoration:underline;">github.com/PECathon-2026/Team-PF-XBZYZH</a>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <footer class="deck-footer">
+      <div class="dots" id="dotsContainer"></div>
+      <div class="nav-btns">
+        <span style="font-size:11px; color:var(--text-muted); margin-right:8px;">Use ← / → Arrow Keys or Spacebar</span>
+        <button class="btn" id="prevBtn">← Previous</button>
+        <button class="btn" id="nextBtn">Next Slide →</button>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const dotsContainer = document.getElementById('dotsContainer');
+    const slideCounter = document.getElementById('slideCounter');
+    let current = 0;
+
+    slides.forEach((_, idx) => {
+      const dot = document.createElement('div');
+      dot.className = 'dot' + (idx === 0 ? ' active' : '');
+      dot.addEventListener('click', () => goToSlide(idx));
+      dotsContainer.appendChild(dot);
+    });
+
+    const dots = Array.from(document.querySelectorAll('.dot'));
+
+    function goToSlide(index) {
+      if (index < 0 || index >= slides.length) return;
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      current = index;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+      slideCounter.textContent = `Slide ${current + 1} / ${slides.length}`;
+    }
+
+    document.getElementById('prevBtn').addEventListener('click', () => goToSlide(current - 1));
+    document.getElementById('nextBtn').addEventListener('click', () => goToSlide(current + 1));
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        goToSlide(current + 1);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        goToSlide(current - 1);
+      }
+    });
+  </script>
+</body>
+</html>
