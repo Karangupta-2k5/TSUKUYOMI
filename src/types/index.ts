@@ -29,11 +29,17 @@ export interface WeatherConditions {
 export interface WeatherScoreResponse {
   location: LocationCoordinates;
   observedAt: string;
+  forecastHourUtc?: string;
   score: number; // 0-100
   scoreLabel: string; // e.g. "weather-only estimate" | "full astronomical index"
   components: ScoreComponents;
   conditions: WeatherConditions;
   source: string;
+  sourceUrl?: string;
+  dataClassification?: string;
+  lastUpdated?: string;
+  cached?: boolean;
+  error?: string;
   limitations: string[];
 }
 
@@ -44,16 +50,35 @@ export interface CelestialEvent {
   title: string;
   category: EventCategory;
   eventType: 'astronomical' | 'spaceflight';
-  startTime: string; // ISO string
+  startTime: string; // ISO string (UTC)
+  penumbralStartUtc?: string;
   endTime?: string;
   timezone: string;
   location?: string;
   description?: string;
+  eclipseType?: string;
+  magnitude?: number;
+  duration?: {
+    total?: string;
+    partial?: string;
+    penumbral?: string;
+  };
   sourceName: string;
   sourceUrl: string;
+  dataClassification?: string;
   lastUpdated?: string;
+  cached?: boolean;
   missionPatchUrl?: string;
   rocketName?: string;
+}
+
+export interface UsnoPhaseMilestone {
+  phase: string;
+  utcIso: string;
+  year: number;
+  month: number;
+  day: number;
+  time: string;
 }
 
 export interface MoonPhaseData {
@@ -63,6 +88,14 @@ export interface MoonPhaseData {
   stage: 'New Moon' | 'Waxing Crescent' | 'First Quarter' | 'Waxing Gibbous' | 'Full Moon' | 'Waning Gibbous' | 'Last Quarter' | 'Waning Crescent';
   stargazingImpact: 'Ideal (Dark Skies)' | 'Moderate Sky Brightness' | 'Poor (Moon Washout)';
   source: string;
+  sourceUrl?: string;
+  dataClassification?: string;
+  lastUpdated?: string;
+  cached?: boolean;
+  error?: string;
+  previousMajorPhase?: { phase: string; utcIso: string };
+  nextMajorPhase?: { phase: string; utcIso: string };
+  upcomingPhases?: UsnoPhaseMilestone[];
 }
 
 export interface ImageEnhancementResult {

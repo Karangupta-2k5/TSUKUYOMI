@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { CelestialEvent } from '../types';
+import { formatUtcToLocal } from '../lib/api';
 import { Rocket, Sparkles, ExternalLink, Calendar, MapPin, Clock, Bell, Check } from 'lucide-react';
 
 interface EventCardProps {
@@ -11,25 +12,13 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onTrackEvent }) => 
   const isLaunch = event.eventType === 'spaceflight';
   const [tracked, setTracked] = useState(false);
 
-  const formatDate = (isoString: string) => {
+  const formatUtcRef = (isoString: string) => {
     try {
-      const d = new Date(isoString);
-      return d.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      });
+      const normalized = isoString.endsWith('Z') || isoString.includes('+') ? isoString : `${isoString}Z`;
+      const d = new Date(normalized);
+      return `${d.toISOString().slice(0, 16).replace('T', ' ')} UTC`;
     } catch {
       return isoString;
-    }
-  };
-
-  const formatTime = (isoString: string) => {
-    try {
-      const d = new Date(isoString);
-      return `${d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })} UTC`;
-    } catch {
-      return '';
     }
   };
 
@@ -44,17 +33,24 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onTrackEvent }) => 
     <div className="celestial-card rounded-xl p-5 relative overflow-hidden flex flex-col justify-between group">
       <div>
         {/* Top Header Tag */}
-        <div className="flex items-center justify-between mb-2.5">
-          <span
-            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
-              isLaunch
-                ? 'bg-rose-500/10 text-rose-300 border-rose-500/30'
-                : 'bg-[#e6c35c]/10 text-[#fce38a] border-[#e6c35c]/30'
-            }`}
-          >
-            {isLaunch ? <Rocket className="w-3 h-3 text-rose-400" /> : <Sparkles className="w-3 h-3 text-[#e6c35c]" />}
-            {isLaunch ? 'Spaceflight Launch' : 'Astronomical Event'}
-          </span>
+        <div className="flex flex-wrap items-center justify-between gap-1.5 mb-2.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span
+              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
+                isLaunch
+                  ? 'bg-rose-500/10 text-rose-300 border-rose-500/30'
+                  : 'bg-[#e6c35c]/10 text-[#fce38a] border-[#e6c35c]/30'
+              }`}
+            >
+              {isLaunch ? <Rocket className="w-3 h-3 text-rose-400" /> : <Sparkles className="w-3 h-3 text-[#e6c35c]" />}
+              {isLaunch ? 'Spaceflight Launch' : 'Calculated Astronomical Ephemeris'}
+            </span>
+            {event.cached && (
+              <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30">
+                Cached
+              </span>
+            )}
+          </div>
 
           <span className="text-[10px] uppercase tracking-wider text-slate-400 font-mono">
             {event.category.replace('_', ' ')}
@@ -68,24 +64,28 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onTrackEvent }) => 
 
         {/* Description */}
         {event.description && (
-          <p className="text-xs text-slate-400 line-clamp-2 mb-3">
+          <p className="text-xs text-slate-400 line-clamp-3 mb-3">
             {event.description}
           </p>
         )}
 
-        {/* Metadata Details */}
+        {/* Metadata Details: Local Timezone + UTC Reference */}
         <div className="space-y-1.5 text-xs text-slate-300 pt-2 border-t border-white/5">
-          <div className="flex items-center space-x-2">
-            <Calendar className="w-3.5 h-3.5 text-[#e6c35c]" />
-            <span>{formatDate(event.startTime)}</span>
-            <span className="text-slate-500">•</span>
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-slate-400">{formatTime(event.startTime)}</span>
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Calendar className="w-3.5 h-3.5 text-[#e6c35c] shrink-0" />
+            <span className="font-semibold text-white">
+              Local: {formatUtcToLocal(event.startTime)}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-2 text-[11px] text-slate-400 font-mono">
+            <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+            <span>Greatest / Peak (UTC): {formatUtcRef(event.startTime)}</span>
           </div>
 
           {event.location && (
             <div className="flex items-center space-x-2 text-slate-400">
-              <MapPin className="w-3.5 h-3.5 text-[#c93b2b]" />
+              <MapPin className="w-3.5 h-3.5 text-[#c93b2b] shrink-0" />
               <span className="truncate">{event.location}</span>
             </div>
           )}
@@ -98,8 +98,8 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onTrackEvent }) => 
         </div>
       </div>
 
-      {/* Footer / Source Link & Gamified Pledge Watch */}
-      <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between gap-2 text-[11px]">
+      {/* Footer / Source Link, Last Updated & Gamified Pledge Watch */}
+      <div className="mt-4 pt-3 border-t border-white/5 flex flex-wrap items-center justify-between gap-2 text-[11px]">
         <button
           onClick={handleToggleTrack}
           className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-semibold transition-all cursor-pointer ${
@@ -112,15 +112,22 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onTrackEvent }) => 
           <span>{tracked ? 'Watch Pledged (+XP)' : 'Pledge Watch'}</span>
         </button>
 
-        <a
-          href={event.sourceUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center space-x-1 text-[#e6c35c] hover:text-[#ffd700] hover:underline"
-        >
-          <span>{event.sourceName}</span>
-          <ExternalLink className="w-3 h-3" />
-        </a>
+        <div className="flex flex-col items-end text-right">
+          <a
+            href={event.sourceUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-1 text-[#e6c35c] hover:text-[#ffd700] hover:underline font-medium"
+          >
+            <span>{event.sourceName}</span>
+            <ExternalLink className="w-3 h-3" />
+          </a>
+          {event.lastUpdated && (
+            <span className="text-[10px] text-slate-500">
+              Updated: {formatUtcToLocal(event.lastUpdated, { includeDate: false, includeSeconds: true })}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );

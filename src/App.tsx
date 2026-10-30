@@ -8,9 +8,9 @@ import { Scene } from './components/Scene';
 import { SamuraiGamificationHub, QuestItem } from './components/SamuraiGamificationHub';
 import { SkyLanternSideDrawer } from './components/SkyLanternLens';
 import { TransientSideDrawer } from './components/TransientAnalysis';
-import { AppMode, LocationCoordinates, WeatherScoreResponse, CelestialEvent } from './types';
-import { CANDIDATE_LOCATIONS, MOCK_WEATHER_SCORE, MOCK_MOON_PHASE, MOCK_CELESTIAL_EVENTS } from './data/mockData';
-import { fetchWeatherScore, fetchCelestialEvents } from './lib/api';
+import { AppMode, LocationCoordinates, WeatherScoreResponse, CelestialEvent, MoonPhaseData } from './types';
+import { CANDIDATE_LOCATIONS, MOCK_WEATHER_SCORE } from './data/mockData';
+import { fetchWeatherScore, fetchCelestialEvents, fetchMoonPhaseData } from './lib/api';
 import { Moon, Shield, ChevronDown, Trophy, Sparkles, ArrowUp } from 'lucide-react';
 
 const INITIAL_QUESTS: QuestItem[] = [
@@ -66,9 +66,14 @@ export const App: React.FC = () => {
   const [appMode, setAppMode] = useState<AppMode>('live');
   const [selectedLocation, setSelectedLocation] = useState<LocationCoordinates>(CANDIDATE_LOCATIONS[0]);
   const [weatherData, setWeatherData] = useState<WeatherScoreResponse>(MOCK_WEATHER_SCORE);
-  const [events, setEvents] = useState<CelestialEvent[]>(MOCK_CELESTIAL_EVENTS);
-  const [isLoadingWeather, setIsLoadingWeather] = useState<boolean>(false);
+  const [moonData, setMoonData] = useState<MoonPhaseData | null>(null);
+  const [events, setEvents] = useState<CelestialEvent[]>([]);
+  const [, setIsLoadingWeather] = useState<boolean>(false);
+  const [isLoadingMoon, setIsLoadingMoon] = useState<boolean>(false);
+  const [isLoadingEvents, setIsLoadingEvents] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [moonError, setMoonError] = useState<string | null>(null);
+  const [eventsError, setEventsError] = useState<string | null>(null);
 
   // Gamification State
   const [quests, setQuests] = useState<QuestItem[]>(INITIAL_QUESTS);
@@ -127,35 +132,61 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Load weather when location or mode changes
-  useEffect(() => {
-    let isSubscribed = true;
+  const loadWeather = useCallback(() => {
     setIsLoadingWeather(true);
     setErrorMessage(null);
-
     fetchWeatherScore(selectedLocation, appMode)
       .then((data) => {
-        if (isSubscribed) {
-          setWeatherData(data);
-          setIsLoadingWeather(false);
-        }
+        setWeatherData(data);
+        setIsLoadingWeather(false);
       })
       .catch((err) => {
-        if (isSubscribed) {
-          setErrorMessage(err.message || 'Unable to update weather observations');
-          setIsLoadingWeather(false);
-        }
+        setErrorMessage(err.message || 'Unable to update Open-Meteo weather forecast');
+        setIsLoadingWeather(false);
       });
-
-    return () => {
-      isSubscribed = false;
-    };
   }, [selectedLocation, appMode]);
 
-  // Load events
-  useEffect(() => {
-    fetchCelestialEvents(appMode).then(setEvents);
+  const loadMoonPhase = useCallback(() => {
+    setIsLoadingMoon(true);
+    setMoonError(null);
+    fetchMoonPhaseData()
+      .then((data) => {
+        setMoonData(data);
+        setIsLoadingMoon(false);
+      })
+      .catch((err) => {
+        setMoonError(err.message || 'Unable to fetch US Naval Observatory Moon phase data');
+        setIsLoadingMoon(false);
+      });
+  }, []);
+
+  const loadCelestialEvents = useCallback(() => {
+    setIsLoadingEvents(true);
+    setEventsError(null);
+    fetchCelestialEvents(appMode)
+      .then((data) => {
+        setEvents(data);
+        setIsLoadingEvents(false);
+      })
+      .catch((err) => {
+        setEventsError(err.message || 'Unable to fetch IMCCE lunar eclipse ephemeris');
+        setIsLoadingEvents(false);
+      });
   }, [appMode]);
+
+  // Load weather when location or mode changes
+  useEffect(() => {
+    loadWeather();
+  }, [loadWeather]);
+
+  // Load USNO Moon phases & IMCCE Lunar Eclipses on mount
+  useEffect(() => {
+    loadMoonPhase();
+  }, [loadMoonPhase]);
+
+  useEffect(() => {
+    loadCelestialEvents();
+  }, [loadCelestialEvents]);
 
   // Location chosen inside the Watchtower module -> sync Dojo + award quest XP
   const handleSelectLocation = useCallback((loc: LocationCoordinates) => {
@@ -306,11 +337,19 @@ export const App: React.FC = () => {
 
             <DashboardPage
               weatherData={weatherData}
-              moonData={MOCK_MOON_PHASE}
+              moonData={moonData}
               events={events}
               selectedLocation={selectedLocation}
               onNavigate={scrollToSection}
               appMode={appMode}
+              weatherError={errorMessage}
+              moonError={moonError}
+              eventsError={eventsError}
+              isLoadingMoon={isLoadingMoon}
+              isLoadingEvents={isLoadingEvents}
+              onRetryWeather={loadWeather}
+              onRetryMoon={loadMoonPhase}
+              onRetryEvents={loadCelestialEvents}
             />
           </section>
 

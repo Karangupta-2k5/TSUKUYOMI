@@ -3,15 +3,23 @@ import { LocationCoordinates, MoonPhaseData, WeatherScoreResponse, CelestialEven
 import { HonorScoreGauge } from '../components/HonorScoreGauge';
 import { MoonPhaseCard } from '../components/MoonPhaseCard';
 import { EventCard } from '../components/EventCard';
-import { Shield, Sparkles, Eye, ArrowRight, MapPin, Compass, Thermometer, Wind, Droplets, Landmark } from 'lucide-react';
+import { Shield, Sparkles, Eye, ArrowRight, MapPin, Compass, Thermometer, Wind, Droplets, Landmark, AlertTriangle, RefreshCw } from 'lucide-react';
 
 interface DashboardPageProps {
   weatherData: WeatherScoreResponse;
-  moonData: MoonPhaseData;
+  moonData: MoonPhaseData | null;
   events: CelestialEvent[];
   selectedLocation: LocationCoordinates;
   onNavigate: (tab: 'dashboard' | 'watchtower' | 'scroll' | 'lens' | 'sanctuary') => void;
   appMode: AppMode;
+  weatherError?: string | null;
+  moonError?: string | null;
+  eventsError?: string | null;
+  isLoadingMoon?: boolean;
+  isLoadingEvents?: boolean;
+  onRetryWeather?: () => void;
+  onRetryMoon?: () => void;
+  onRetryEvents?: () => void;
 }
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({
@@ -20,7 +28,15 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
   events,
   selectedLocation,
   onNavigate,
-  appMode
+  appMode,
+  weatherError,
+  moonError,
+  eventsError,
+  isLoadingMoon,
+  isLoadingEvents,
+  onRetryWeather,
+  onRetryMoon,
+  onRetryEvents,
 }) => {
   const nextEvent = events[0];
 
@@ -129,19 +145,32 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
             scoreOverride={weatherData.score}
             scoreLabel={weatherData.scoreLabel}
             source={weatherData.source}
+            dataClassification={weatherData.dataClassification}
+            lastUpdated={weatherData.lastUpdated}
+            forecastHourUtc={weatherData.forecastHourUtc}
+            cached={weatherData.cached}
+            error={weatherError || weatherData.error || null}
+            onRetry={onRetryWeather}
             limitations={weatherData.limitations}
           />
         </div>
 
         <div className="lg:col-span-5 flex flex-col justify-between space-y-6">
-          <MoonPhaseCard data={moonData} />
+          <MoonPhaseCard
+            data={moonData}
+            isLoading={isLoadingMoon}
+            error={moonError}
+            onRetry={onRetryMoon}
+          />
 
           {/* Quick Action — Sanctuary Card */}
           <div className="celestial-card rounded-2xl p-5 border border-[rgba(223,231,224,0.1)] flex items-center justify-between">
             <div className="space-y-1">
               <span className="text-[10px] uppercase tracking-widest text-[#78837c] font-semibold">Active Sanctuary</span>
               <h4 className="font-celestial text-sm font-bold text-[#dfe7e0]">{selectedLocation.displayName || selectedLocation.name}</h4>
-              <p className="text-xs text-[#78837c]">Elevation: {selectedLocation.elevation ?? 2300}m</p>
+              <p className="text-xs text-[#78837c]">
+                Coordinates: {selectedLocation.latitude.toFixed(2)}°, {selectedLocation.longitude.toFixed(2)}° • Elevation: {selectedLocation.elevation ?? 2300}m
+              </p>
             </div>
             <button
               onClick={() => onNavigate('watchtower')}
@@ -154,27 +183,59 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({
         </div>
       </div>
 
-      {/* ── Upcoming Events Preview ── */}
+      {/* ── IMCCE Lunar Eclipses & USNO Ephemeris Events ── */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center space-x-2">
             <Sparkles className="w-4 h-4 text-[#c9a24a]" />
-            <h2 className="font-celestial text-xl font-bold text-[#dfe7e0]">Next Celestial Horizon</h2>
+            <h2 className="font-celestial text-xl font-bold text-[#dfe7e0]">
+              IMCCE Lunar Eclipses &amp; USNO Ephemeris Horizon
+            </h2>
           </div>
           <button
             onClick={() => onNavigate('scroll')}
             className="text-xs text-[#c9a24a] hover:underline flex items-center space-x-1 cursor-pointer"
           >
-            <span>View All Events</span>
+            <span>Open Celestial Scroll</span>
             <ArrowRight className="w-3 h-3" />
           </button>
         </div>
 
-        {nextEvent && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <EventCard event={nextEvent} />
-            {events[1] && <EventCard event={events[1]} />}
+        {eventsError && events.length === 0 ? (
+          <div className="celestial-card rounded-2xl p-5 border border-red-500/40 bg-red-950/15 flex items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[10px] uppercase tracking-widest text-red-400 font-semibold flex items-center gap-1.5">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                IMCCE / USNO Ephemeris Unavailable
+              </span>
+              <p className="text-xs text-slate-300">{eventsError}</p>
+              <p className="text-[11px] text-slate-400 italic">
+                Hardcoded or fake lunar eclipse events are never displayed when the IMCCE OPALE API fails.
+              </p>
+            </div>
+            {onRetryEvents && (
+              <button
+                onClick={onRetryEvents}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-red-500/20 border border-red-500/40 text-xs text-red-200 hover:bg-red-500/30 shrink-0 cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Retry</span>
+              </button>
+            )}
           </div>
+        ) : isLoadingEvents && events.length === 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="celestial-card rounded-xl p-6 h-40 animate-pulse bg-white/5" />
+            <div className="celestial-card rounded-xl p-6 h-40 animate-pulse bg-white/5" />
+          </div>
+        ) : (
+          events.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {events.slice(0, 4).map((ev) => (
+                <EventCard key={ev.id} event={ev} />
+              ))}
+            </div>
+          )
         )}
       </div>
 
