@@ -6,6 +6,8 @@ import { CelestialScrollPage } from './pages/CelestialScrollPage';
 import { SpiritLensPage } from './pages/SpiritLensPage';
 import { Scene } from './components/Scene';
 import { SamuraiGamificationHub, QuestItem } from './components/SamuraiGamificationHub';
+import { CelestialGamePage } from './pages/CelestialGamePage';
+import { SignupModal, StargazerUser } from './components/SignupModal';
 import { SkyLanternSideDrawer } from './components/SkyLanternLens';
 import { TransientSideDrawer } from './components/TransientAnalysis';
 import { AppMode, LocationCoordinates, WeatherScoreResponse, CelestialEvent, MoonPhaseData } from './types';
@@ -75,10 +77,19 @@ export const App: React.FC = () => {
   const [moonError, setMoonError] = useState<string | null>(null);
   const [eventsError, setEventsError] = useState<string | null>(null);
 
-  // Gamification State
+  // Gamification & Samurai Honours Stargazer Auth State
   const [quests, setQuests] = useState<QuestItem[]>(INITIAL_QUESTS);
   const [xp, setXp] = useState<number>(120); // Starting base XP
   const [xpToast, setXpToast] = useState<{ title: string; xp: number } | null>(null);
+  const [isSignupOpen, setIsSignupOpen] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<StargazerUser | null>(() => {
+    try {
+      const saved = localStorage.getItem('tsukuyomi_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
 
   // Side Drawer States for NASA SkyView & Transient Analysis Lab
   const [isSkyLanternOpen, setIsSkyLanternOpen] = useState<boolean>(false);
@@ -224,6 +235,21 @@ export const App: React.FC = () => {
         xp={xp}
       />
 
+      {/* ── Samurai Stargazer Sign Up & Profile Modal ── */}
+      <SignupModal
+        isOpen={isSignupOpen}
+        onClose={() => setIsSignupOpen(false)}
+        currentUser={currentUser}
+        onAuthSuccess={(user) => {
+          setCurrentUser(user);
+          setXp((curr) => Math.max(curr, user.honor));
+        }}
+        onSignOut={() => {
+          localStorage.removeItem('tsukuyomi_user');
+          setCurrentUser(null);
+        }}
+      />
+
       {/* ── NASA SkyView Virtual Observatory (Sky Lantern Lens) Sidecar Console ── */}
       <SkyLanternSideDrawer
         isOpen={isSkyLanternOpen}
@@ -353,15 +379,25 @@ export const App: React.FC = () => {
             />
           </section>
 
-          {/* ── SECTION 5: SAMURAI GAMIFICATION HUB, QUESTS, SIMULATOR & QUIZ ── */}
-          <section id="section-gamification" className="scroll-mt-24 space-y-6">
+          {/* ── SECTION 5: SAMURAI HONOURS (CELESTIAL GAME, SIGNUP, QUESTS & QUIZ) ── */}
+          <section id="section-gamification" className="scroll-mt-24 space-y-10">
             <div className="flex items-center gap-4">
               <span className="text-xs font-bold uppercase tracking-[0.24em] text-[#e0231c]">
-                CHAPTER V • 侍の試練
+                CHAPTER V • 侍の誉れ
               </span>
               <div className="flex-1 h-px bg-[rgba(223,231,224,0.1)]" />
-              <span className="font-japanese text-xs text-[#c9a24a]">Samurai Stargazer Command</span>
+              <span className="font-japanese text-xs text-[#c9a24a]">Samurai Honours • Celestial Game &amp; Stargazer Registry</span>
             </div>
+
+            <CelestialGamePage
+              currentUser={currentUser}
+              onOpenSignup={() => setIsSignupOpen(true)}
+              onAddHonorXp={(pts) => {
+                setXp((curr) => curr + pts);
+                setXpToast({ title: 'Celestial Observation Verified', xp: pts });
+                setTimeout(() => setXpToast(null), 4000);
+              }}
+            />
 
             <SamuraiGamificationHub
               xp={xp}
