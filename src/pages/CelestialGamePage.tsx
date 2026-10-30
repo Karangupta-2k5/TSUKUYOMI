@@ -19,6 +19,14 @@ import {
 } from 'lucide-react';
 import exifr from 'exifr';
 import { StargazerUser } from '../components/SignupModal';
+import {
+  saveCelestialUploadToSupabase,
+  fetchCelestialUploadsFromSupabase,
+  updateStargazerHonorInSupabase,
+  CelestialUploadRow,
+  StargazerUserRow,
+  isSupabaseConfigured,
+} from '../lib/supabase';
 
 // Categories Definition
 export interface CategoryConfig {
@@ -550,6 +558,7 @@ export const CelestialGamePage: React.FC<CelestialGamePageProps> = ({
   const [pickedFile, setPickedFile] = useState<{
     url: string | null;
     name: string;
+    rawFile?: File | null;
     stars: number;
     bright: number;
     meta: {
@@ -562,6 +571,12 @@ export const CelestialGamePage: React.FC<CelestialGamePageProps> = ({
       name: string;
     };
   } | null>(null);
+
+  const [dbUploads, setDbUploads] = useState<CelestialUploadRow[]>([]);
+  const [dbUsers, setDbUsers] = useState<StargazerUserRow[]>([]);
+  const [dbSource, setDbSource] = useState<'supabase' | 'local-mirror'>(
+    isSupabaseConfigured ? 'supabase' : 'local-mirror'
+  );
 
   const [verifyResult, setVerifyResult] = useState<{
     passed: boolean;
@@ -578,11 +593,35 @@ export const CelestialGamePage: React.FC<CelestialGamePageProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Sync user profile honor
+  // Sync user profile honor & fetch Supabase rows
   useEffect(() => {
     if (currentUser?.honor) {
       setMyHonor(currentUser.honor);
     }
+    fetchCelestialUploadsFromSupabase(currentUser?.email).then((res) => {
+      setDbUploads(res.userUploads);
+      setDbUsers(res.allUsers);
+      setDbSource(res.source);
+      if (res.sharedUploads.length > 0) {
+        setSharedPhotos((prev) => {
+          const existingIds = new Set(prev.map((p) => String(p.id)));
+          const mapped: SharedSkyPhoto[] = res.sharedUploads
+            .filter((u) => !existingIds.has(u.id))
+            .map((u) => ({
+              id: u.id,
+              uid: u.user_id || u.user_email,
+              authorName: u.author_name,
+              loc: u.observation_location,
+              seed: u.artwork_seed,
+              img: u.image_url,
+              lan: u.lantern_count,
+              bow: u.bow_count,
+              timestamp: new Date(u.created_at).getTime(),
+            }));
+          return [...mapped, ...prev];
+        });
+      }
+    });
   }, [currentUser]);
 
   // Save collection changes
@@ -688,6 +727,7 @@ export const CelestialGamePage: React.FC<CelestialGamePageProps> = ({
       setPickedFile({
         url: reader.result as string,
         name: file.name,
+        rawFile: file,
         stars: 94,
         bright: 32,
         meta: parsedMeta,
@@ -787,6 +827,37 @@ export const CelestialGamePage: React.FC<CelestialGamePageProps> = ({
     const catPoints = GAME_CATEGORIES[item.cat]?.points || 50;
     const lensBonus = enhanceWithSpiritLens ? 50 : 0;
     const totalPoints = allPassed ? catPoints + lensBonus : 0;
+    const matchScoreVal = allPassed ? Math.floor(93 + Math.random() * 6) : 42;
+    const artworkSeedVal = Math.floor(Math.random() * 900);
+
+    // Persist upload record to Supabase `celestial_uploads` table (and Storage bucket)
+    const savedUpload = await saveCelestialUploadToSupabase({
+      userId: currentUser?.id || null,
+      userEmail: currentUser?.email || 'stargazer@tsukuyomi.guide',
+      authorName: currentUser?.name || 'Samurai Stargazer',
+      authorAvatar: currentUser?.avatar || '🌸',
+      itemId: item.id,
+      itemName: item.name,
+      category: item.cat,
+      observationLocation: uploadPlace || 'GPS Sanctuary',
+      cameraMake: meta.make,
+      cameraModel: meta.model,
+      capturedAt: meta.date,
+      gpsLatitude: meta.lat,
+      gpsLongitude: meta.lon,
+      imageDataUrl: pickedFile.url,
+      rawFile: pickedFile.rawFile || null,
+      spiritLensEnhanced: enhanceWithSpiritLens,
+      sharedToSky: shareToPublicSky && allPassed,
+      verificationPassed: allPassed,
+      matchScore: matchScoreVal,
+      honorAwarded: totalPoints,
+      artworkSeed: artworkSeedVal,
+      exifChecks: checks,
+    });
+
+    setDbUploads((prev) => [savedUpload.row, ...prev]);
+    setDbSource(savedUpload.source);
 
     if (allPassed) {
       // Award to collection
@@ -794,10 +865,10 @@ export const CelestialGamePage: React.FC<CelestialGamePageProps> = ({
         date: new Date().toISOString().split('T')[0],
         loc: uploadPlace || 'GPS Sanctuary',
         gear: `${meta.make} ${meta.model}`,
-        seed: Math.floor(Math.random() * 900),
+        seed: artworkSeedVal,
         lan: 1,
         bow: 1,
-        img: pickedFile.url,
+        img: savedUpload.row.image_url || pickedFile.url,
         lens: enhanceWithSpiritLens,
       };
 
@@ -810,21 +881,30 @@ export const CelestialGamePage: React.FC<CelestialGamePageProps> = ({
       setMyHonor(updatedHonor);
       if (onAddHonorXp) onAddHonorXp(totalPoints);
 
+      const nextStamps =
+        isEvent && !myStamps.includes(item.name + ' Seal')
+          ? [...myStamps, item.name + ' Seal']
+          : myStamps;
+
       if (isEvent && !myStamps.includes(item.name + ' Seal')) {
-        setMyStamps((prev) => [...prev, item.name + ' Seal']);
+        setMyStamps(nextStamps);
+      }
+
+      if (currentUser?.email) {
+        await updateStargazerHonorInSupabase(currentUser.email, updatedHonor, nextStamps);
       }
 
       if (shareToPublicSky) {
         setSharedPhotos((prev) => [
           {
-            id: Date.now(),
+            id: savedUpload.row.id || Date.now(),
             uid: currentUser?.id || 'me',
             authorName: currentUser?.name || 'You',
             loc: uploadPlace,
             seed: newEntry.seed,
-            img: pickedFile.url,
-            lan: 0,
-            bow: 0,
+            img: savedUpload.row.image_url || pickedFile.url,
+            lan: 1,
+            bow: 1,
             timestamp: Date.now(),
           },
           ...prev,
@@ -836,7 +916,7 @@ export const CelestialGamePage: React.FC<CelestialGamePageProps> = ({
       passed: allPassed,
       itemName: item.name,
       honorEarned: totalPoints,
-      matchScore: allPassed ? Math.floor(93 + Math.random() * 6) : 42,
+      matchScore: matchScoreVal,
       checks,
     });
   };
@@ -1393,6 +1473,188 @@ export const CelestialGamePage: React.FC<CelestialGamePageProps> = ({
                 <span>Verification results will manifest here following optical scanning.</span>
               </div>
             )}
+          </div>
+
+          {/* ── SUPABASE DATABASE REGISTRY: `stargazer_users` & `celestial_uploads` TABLES ── */}
+          <div className="lg:col-span-12 space-y-6 pt-4">
+            <div className="p-5 sm:p-6 rounded-2xl bg-[#090d14] border border-[rgba(201,162,74,0.35)] shadow-2xl space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 pb-4">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#e0231c] block">
+                    SUPABASE POSTGRES DATABASE • LIVE TABLE TELEMETRY
+                  </span>
+                  <h4 className="font-celestial text-lg font-bold text-white mt-0.5">
+                    Authenticated Stargazer &amp; Uploaded Images Database Tables
+                  </h4>
+                </div>
+                <div className="flex items-center gap-2 text-[11px]">
+                  <span
+                    className={`px-2.5 py-1 rounded-full font-semibold border ${
+                      dbSource === 'supabase'
+                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
+                        : 'bg-[#c9a24a]/15 text-[#fce38a] border-[#c9a24a]/40'
+                    }`}
+                  >
+                    {dbSource === 'supabase'
+                      ? '● Connected: Supabase Cloud Postgres'
+                      : '● Active: Supabase Schema Mirror (Set VITE_SUPABASE_URL to sync cloud)'}
+                  </span>
+                </div>
+              </div>
+
+              {/* TABLE 1: public.stargazer_users (Authentication Details) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-mono font-bold text-[#c9a24a]">
+                    TABLE 1: public.stargazer_users (Authentication &amp; Profile Rows)
+                  </span>
+                  <span className="text-[#78837c]">
+                    Columns: id • email • name • avatar • location • honor_xp • rank_title • registered_at
+                  </span>
+                </div>
+                <div className="overflow-x-auto rounded-xl border border-white/10 bg-[#05070a]">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b border-white/10 bg-white/[0.03] text-[10px] uppercase tracking-wider text-[#aab4ad] font-mono">
+                        <th className="py-2.5 px-3">id (PK)</th>
+                        <th className="py-2.5 px-3">avatar</th>
+                        <th className="py-2.5 px-3">name</th>
+                        <th className="py-2.5 px-3">email (UNIQUE)</th>
+                        <th className="py-2.5 px-3">location</th>
+                        <th className="py-2.5 px-3">honor_xp</th>
+                        <th className="py-2.5 px-3">rank_title</th>
+                        <th className="py-2.5 px-3">status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 font-mono text-[11px]">
+                      {currentUser && (
+                        <tr className="bg-[#c9a24a]/10 text-white">
+                          <td className="py-2.5 px-3 text-[#c9a24a]">{currentUser.id.slice(0, 12)}</td>
+                          <td className="py-2.5 px-3 text-base">{currentUser.avatar}</td>
+                          <td className="py-2.5 px-3 font-sans font-bold text-white">{currentUser.name}</td>
+                          <td className="py-2.5 px-3 text-[#dfe7e0]">{currentUser.email}</td>
+                          <td className="py-2.5 px-3 font-sans text-[#aab4ad]">{currentUser.location}</td>
+                          <td className="py-2.5 px-3 text-[#fce38a] font-bold">{myHonor}</td>
+                          <td className="py-2.5 px-3 font-sans text-[#c9a24a]">{currentRank.name}</td>
+                          <td className="py-2.5 px-3">
+                            <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px]">
+                              AUTHENTICATED
+                            </span>
+                          </td>
+                        </tr>
+                      )}
+                      {dbUsers
+                        .filter((u) => u.email.toLowerCase() !== currentUser?.email?.toLowerCase())
+                        .slice(0, 5)
+                        .map((u) => (
+                          <tr key={u.id} className="text-[#aab4ad] hover:bg-white/[0.02]">
+                            <td className="py-2 px-3 text-[#78837c]">{String(u.id).slice(0, 12)}</td>
+                            <td className="py-2 px-3 text-base">{u.avatar}</td>
+                            <td className="py-2 px-3 font-sans text-white">{u.name}</td>
+                            <td className="py-2 px-3">{u.email}</td>
+                            <td className="py-2 px-3 font-sans">{u.location}</td>
+                            <td className="py-2 px-3 text-[#fce38a]">{u.honor_xp}</td>
+                            <td className="py-2 px-3 font-sans text-[#c9a24a]">{u.rank_title}</td>
+                            <td className="py-2 px-3 text-[10px] text-[#78837c]">VERIFIED</td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* TABLE 2: public.celestial_uploads (Uploaded Images & EXIF Metadata) */}
+              <div className="space-y-2 pt-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-mono font-bold text-[#c9a24a]">
+                    TABLE 2: public.celestial_uploads (Uploaded Astrophotography &amp; EXIF Rows)
+                  </span>
+                  <span className="text-[#78837c]">
+                    {dbUploads.length} {dbUploads.length === 1 ? 'row' : 'rows'} recorded
+                  </span>
+                </div>
+                <div className="overflow-x-auto rounded-xl border border-white/10 bg-[#05070a]">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b border-white/10 bg-white/[0.03] text-[10px] uppercase tracking-wider text-[#aab4ad] font-mono">
+                        <th className="py-2.5 px-3">id (PK)</th>
+                        <th className="py-2.5 px-3">image_url</th>
+                        <th className="py-2.5 px-3">user_email (FK)</th>
+                        <th className="py-2.5 px-3">item_name</th>
+                        <th className="py-2.5 px-3">category</th>
+                        <th className="py-2.5 px-3">observation_location</th>
+                        <th className="py-2.5 px-3">camera_gear</th>
+                        <th className="py-2.5 px-3">gps_coords</th>
+                        <th className="py-2.5 px-3">verification</th>
+                        <th className="py-2.5 px-3">honor_awarded</th>
+                        <th className="py-2.5 px-3">created_at</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 font-mono text-[11px]">
+                      {dbUploads.length === 0 ? (
+                        <tr>
+                          <td colSpan={11} className="py-6 text-center font-sans text-xs text-[#78837c]">
+                            No uploaded image rows yet for this session. Upload a photo or click{' '}
+                            <span className="text-emerald-300 font-semibold">✓ Camera Sample (Pass)</span>{' '}
+                            and run verification above to insert a row into{' '}
+                            <code className="text-[#c9a24a]">public.celestial_uploads</code>.
+                          </td>
+                        </tr>
+                      ) : (
+                        dbUploads.map((row) => (
+                          <tr key={row.id} className="text-[#dfe7e0] hover:bg-white/[0.02]">
+                            <td className="py-2.5 px-3 text-[#c9a24a]">{String(row.id).slice(0, 10)}</td>
+                            <td className="py-2.5 px-3">
+                              {row.image_url ? (
+                                <img
+                                  src={row.image_url}
+                                  alt={row.item_name}
+                                  className="w-10 h-8 rounded object-cover border border-white/15"
+                                />
+                              ) : (
+                                <span className="px-2 py-0.5 rounded bg-white/5 text-[10px] text-[#c9a24a]">
+                                  SVG #{row.artwork_seed}
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-2.5 px-3 text-[#aab4ad]">{row.user_email}</td>
+                            <td className="py-2.5 px-3 font-sans font-bold text-white">{row.item_name}</td>
+                            <td className="py-2.5 px-3 uppercase text-[10px] text-[#c9a24a]">{row.category}</td>
+                            <td className="py-2.5 px-3 font-sans text-[#aab4ad]">
+                              {row.observation_location}
+                            </td>
+                            <td className="py-2.5 px-3 text-[#aab4ad]">{row.camera_gear || '—'}</td>
+                            <td className="py-2.5 px-3 text-[10px] text-[#78837c]">
+                              {row.gps_latitude != null && row.gps_longitude != null
+                                ? `${row.gps_latitude.toFixed(2)}°, ${row.gps_longitude.toFixed(2)}°`
+                                : '—'}
+                            </td>
+                            <td className="py-2.5 px-3">
+                              {row.verification_passed ? (
+                                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px]">
+                                  PASSED ({row.match_score}%)
+                                </span>
+                              ) : (
+                                <span className="px-2 py-0.5 rounded bg-red-500/20 text-red-300 text-[10px]">
+                                  REJECTED
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-2.5 px-3 text-[#fce38a] font-bold">+{row.honor_awarded}</td>
+                            <td className="py-2.5 px-3 text-[10px] text-[#78837c]">
+                              {new Date(row.created_at).toLocaleTimeString([], {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

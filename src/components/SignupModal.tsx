@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { X, User, Mail, Lock, MapPin, Sparkles, CheckCircle2, ShieldCheck, LogOut } from 'lucide-react';
+import { X, User, Mail, Lock, MapPin, Sparkles, CheckCircle2, ShieldCheck, LogOut, Database } from 'lucide-react';
+import {
+  registerStargazerInSupabase,
+  loginStargazerInSupabase,
+  isSupabaseConfigured,
+  supabase,
+} from '../lib/supabase';
 
 export interface StargazerUser {
   id: string;
@@ -9,6 +15,9 @@ export interface StargazerUser {
   avatar: string;
   honor: number;
   registeredAt: number;
+  rankTitle?: string;
+  stamps?: string[];
+  dbSource?: 'supabase' | 'local-mirror';
 }
 
 interface SignupModalProps {
@@ -35,12 +44,13 @@ export const SignupModal: React.FC<SignupModalProps> = ({
   const [location, setLocation] = useState('Kyoto, JP');
   const [avatar, setAvatar] = useState('🌸');
   const [prefillDemo, setPrefillDemo] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -61,72 +71,107 @@ export const SignupModal: React.FC<SignupModalProps> = ({
         return;
       }
 
-      const userId = 'sg_' + Math.random().toString(36).substring(2, 9);
-      const newUser: StargazerUser = {
-        id: userId,
-        name: cleanName,
-        email: cleanEmail,
-        location: location.trim() || 'Dark-Sky Sanctuary',
-        avatar,
-        honor: prefillDemo ? 750 : 150,
-        registeredAt: Date.now(),
-      };
+      setIsSubmitting(true);
+      try {
+        const { row, source } = await registerStargazerInSupabase({
+          name: cleanName,
+          email: cleanEmail,
+          password,
+          location: location.trim() || 'Dark-Sky Sanctuary',
+          avatar,
+          prefillDemo,
+        });
 
-      localStorage.setItem('tsukuyomi_user', JSON.stringify(newUser));
-      localStorage.setItem('tw_uid', newUser.id);
+        const newUser: StargazerUser = {
+          id: row.id,
+          name: row.name,
+          email: row.email,
+          location: row.location,
+          avatar: row.avatar,
+          honor: row.honor_xp,
+          registeredAt: new Date(row.registered_at).getTime() || Date.now(),
+          rankTitle: row.rank_title,
+          stamps: row.stamps,
+          dbSource: source,
+        };
 
-      // Pre-fill demo collection in tw_db if requested
-      if (prefillDemo) {
-        try {
-          const dbStr = localStorage.getItem('tw_db') || '{}';
-          const db = JSON.parse(dbStr);
-          db['players/' + newUser.id] = {
-            name: newUser.name,
-            loc: newUser.location,
-            av: newUser.avatar,
-            pts: 750,
-            n: 14,
-            nc: 9,
-            stamps: ['Blood Moon Eclipse 2026', 'Perseid Watcher'],
-          };
-          localStorage.setItem('tw_db', JSON.stringify(db));
-        } catch {
-          // Ignore fallback storage issues
+        localStorage.setItem('tsukuyomi_user', JSON.stringify(newUser));
+        localStorage.setItem('tw_uid', newUser.id);
+
+        // Pre-fill demo collection in tw_db if requested
+        if (prefillDemo) {
+          try {
+            const dbStr = localStorage.getItem('tw_db') || '{}';
+            const db = JSON.parse(dbStr);
+            db['players/' + newUser.id] = {
+              name: newUser.name,
+              loc: newUser.location,
+              av: newUser.avatar,
+              pts: newUser.honor,
+              n: 14,
+              nc: 9,
+              stamps: row.stamps,
+            };
+            localStorage.setItem('tw_db', JSON.stringify(db));
+          } catch {
+            // Ignore fallback storage issues
+          }
         }
-      }
 
-      setSuccessMsg('Welcome, Stargazer ' + newUser.name + '! Your scroll is now unsealed.');
-      setTimeout(() => {
-        onAuthSuccess(newUser);
-        onClose();
-      }, 700);
+        setSuccessMsg(
+          `Welcome, Stargazer ${newUser.name}! Stored in ${
+            source === 'supabase' ? 'Supabase Cloud (`stargazer_users`)' : 'Stargazer DB (`stargazer_users`)'
+          }.`
+        );
+        setTimeout(() => {
+          setIsSubmitting(false);
+          onAuthSuccess(newUser);
+          onClose();
+        }, 650);
+      } catch (err: any) {
+        setIsSubmitting(false);
+        setError(err?.message || 'Unable to register Stargazer profile.');
+      }
     } else {
       // Login mode
       if (!cleanEmail) {
         setError('Please enter your email.');
         return;
       }
-      const existingStr = localStorage.getItem('tsukuyomi_user');
-      let loggedUser: StargazerUser;
-      if (existingStr) {
-        loggedUser = JSON.parse(existingStr);
-      } else {
-        loggedUser = {
-          id: 'sg_local',
-          name: cleanEmail.split('@')[0] || 'Samurai Stargazer',
+
+      setIsSubmitting(true);
+      try {
+        const { row, source } = await loginStargazerInSupabase({
           email: cleanEmail,
-          location: 'Kyoto Sanctuary, JP',
-          avatar: '🌙',
-          honor: 600,
-          registeredAt: Date.now(),
+          password,
+        });
+
+        const loggedUser: StargazerUser = {
+          id: row.id,
+          name: row.name,
+          email: row.email,
+          location: row.location,
+          avatar: row.avatar,
+          honor: row.honor_xp,
+          registeredAt: new Date(row.registered_at).getTime() || Date.now(),
+          rankTitle: row.rank_title,
+          stamps: row.stamps,
+          dbSource: source,
         };
+
         localStorage.setItem('tsukuyomi_user', JSON.stringify(loggedUser));
+        localStorage.setItem('tw_uid', loggedUser.id);
+
+        setSuccessMsg(`Greetings, Stargazer ${loggedUser.name}! Authenticated via stargazer_users.`);
+        setTimeout(() => {
+          setIsSubmitting(false);
+          onAuthSuccess(loggedUser);
+          onClose();
+        }, 650);
+      } catch (err: any) {
+        setIsSubmitting(false);
+        setError(err?.message || 'Unable to sign in to your Stargazer account.');
       }
-      setSuccessMsg('Greetings, Stargazer ' + loggedUser.name + '!');
-      setTimeout(() => {
-        onAuthSuccess(loggedUser);
-        onClose();
-      }, 700);
     }
   };
 
@@ -182,6 +227,13 @@ export const SignupModal: React.FC<SignupModalProps> = ({
                   <ShieldCheck className="w-3.5 h-3.5" /> Authenticated
                 </span>
               </div>
+              <div className="flex justify-between">
+                <span>Database Table:</span>
+                <span className="text-[#c9a24a] font-mono flex items-center gap-1">
+                  <Database className="w-3 h-3" />
+                  public.stargazer_users ({isSupabaseConfigured ? 'Supabase Cloud' : 'Local Mirror'})
+                </span>
+              </div>
             </div>
 
             <div className="flex gap-3 pt-2">
@@ -192,7 +244,14 @@ export const SignupModal: React.FC<SignupModalProps> = ({
                 Enter Temple
               </button>
               <button
-                onClick={() => {
+                onClick={async () => {
+                  if (supabase) {
+                    try {
+                      await supabase.auth.signOut();
+                    } catch {
+                      // ignore
+                    }
+                  }
                   onSignOut();
                   onClose();
                 }}
@@ -341,10 +400,17 @@ export const SignupModal: React.FC<SignupModalProps> = ({
 
               <button
                 type="submit"
-                className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#e0231c] via-[#c9a24a] to-[#e0231c] text-white font-bold text-xs uppercase tracking-wider hover:opacity-95 shadow-lg shadow-[rgba(224,35,28,0.3)] transition-all cursor-pointer flex items-center justify-center gap-2"
+                disabled={isSubmitting}
+                className="w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#e0231c] via-[#c9a24a] to-[#e0231c] text-white font-bold text-xs uppercase tracking-wider hover:opacity-95 disabled:opacity-50 shadow-lg shadow-[rgba(224,35,28,0.3)] transition-all cursor-pointer flex items-center justify-center gap-2"
               >
                 <Sparkles className="w-4 h-4" />
-                <span>{isLoginMode ? 'Enter Temple' : 'Seal Scroll & Begin Quest'}</span>
+                <span>
+                  {isSubmitting
+                    ? 'Syncing with Supabase Database...'
+                    : isLoginMode
+                    ? 'Enter Temple'
+                    : 'Seal Scroll & Begin Quest'}
+                </span>
               </button>
             </form>
 

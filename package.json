@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@designcodeio/threeui": "^1.2.0",
+    "@supabase/supabase-js": "^2.118.0",
     "axios": "^1.21.0",
     "clsx": "^2.1.1",
     "exifr": "^7.1.3",
