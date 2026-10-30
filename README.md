@@ -1,6 +1,10 @@
 # 🌙 TSUKUYOMI WATCH (月読命) — *The Samurai's Celestial Guide*
 **PECathon 2026 Official Submission • Team PF-XBZYZH**
 
+- 🚀 **Live Production App (Vercel):** **[https://tsukuyomi-watch-mu.vercel.app](https://tsukuyomi-watch-mu.vercel.app)**
+- 🗄️ **Cloud Database & Storage:** **Supabase Postgres (`public.stargazer_users`, `public.celestial_uploads`) & Storage (`celestial-uploads`)**
+- 📦 **Official Repository:** **[https://github.com/PECathon-2026/Team-PF-XBZYZH](https://github.com/PECathon-2026/Team-PF-XBZYZH)**
+
 > A comprehensive astronomical observation, AI optical restoration, photometric source detection, and gamified stargazing platform inspired by traditional Japanese *sumi-e* & samurai sanctuary aesthetics.
 
 ---
