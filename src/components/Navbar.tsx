@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Compass, Sparkles, Moon, Shield, Eye, Flame, Landmark, Trophy } from 'lucide-react';
+import { Compass, Sparkles, Shield, Eye, Trophy, Lock, CheckCircle2 } from 'lucide-react';
 import { AppMode } from '../types';
+import { StargazerUser } from './SignupModal';
 
 export type SectionId = 'sanctuary' | 'gamification' | 'dashboard' | 'watchtower' | 'scroll' | 'lens';
 
@@ -10,6 +11,9 @@ interface NavbarProps {
   appMode: AppMode;
   setAppMode: (mode: AppMode) => void;
   xp?: number;
+  isSamuraiHonoursPage?: boolean;
+  currentUser?: StargazerUser | null;
+  onSamuraiHonoursClick?: () => void;
 }
 
 const NAV_LINKS: { id: SectionId; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
@@ -19,8 +23,14 @@ const NAV_LINKS: { id: SectionId; label: string; icon: React.ComponentType<{ cla
   { id: 'dashboard',  label: 'Dojo Score',       icon: Compass  },
 ];
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
-  const [stuck, setStuck] = useState(false);
+export const Navbar: React.FC<NavbarProps> = ({
+  activeTab,
+  setActiveTab,
+  isSamuraiHonoursPage = false,
+  currentUser = null,
+  onSamuraiHonoursClick,
+}) => {
+  const [, setStuck] = useState(false);
   const lastY = useRef(0);
 
   useEffect(() => {
@@ -37,6 +47,14 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
     'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
     'bg-[#05070a]/95 backdrop-blur-md border-b border-[rgba(223,231,224,0.08)] shadow-2xl shadow-[#05070a]',
   ].join(' ');
+
+  const handleHonoursClick = () => {
+    if (onSamuraiHonoursClick) {
+      onSamuraiHonoursClick();
+    } else {
+      setActiveTab('gamification');
+    }
+  };
 
   return (
     <header className={navCls}>
@@ -73,7 +91,7 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
           {/* ── Desktop nav links ── */}
           <nav className="hidden lg:flex items-center space-x-1">
             {NAV_LINKS.map(({ id, label, icon: Icon }) => {
-              const isOn = activeTab === id;
+              const isOn = !isSamuraiHonoursPage && activeTab === id;
               return (
                 <button
                   key={id}
@@ -95,33 +113,59 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
             })}
           </nav>
 
-          {/* ── Samurai Honours Button ── */}
+          {/* ── Samurai Honours Button (Auth-Gated Chapter V Page Trigger) ── */}
           <div className="flex items-center space-x-2.5">
             <button
               type="button"
-              onClick={() => setActiveTab('gamification')}
-              className="flex items-center space-x-1.5 px-4 py-1.5 rounded-full bg-[rgba(201,162,74,0.12)] border border-[rgba(201,162,74,0.4)] text-xs font-bold text-[#fce38a] hover:bg-[rgba(201,162,74,0.22)] transition-all cursor-pointer"
+              onClick={handleHonoursClick}
+              className={[
+                'flex items-center space-x-2 px-4 py-1.5 rounded-full border text-xs font-bold transition-all cursor-pointer',
+                isSamuraiHonoursPage
+                  ? 'bg-[#e0231c] border-[#e0231c] text-white shadow-lg shadow-[#e0231c]/30'
+                  : 'bg-[rgba(201,162,74,0.12)] border-[rgba(201,162,74,0.4)] text-[#fce38a] hover:bg-[rgba(201,162,74,0.22)]',
+              ].join(' ')}
             >
-              <Trophy className="w-3.5 h-3.5 text-[#c9a24a]" />
+              <Trophy className={`w-3.5 h-3.5 ${isSamuraiHonoursPage ? 'text-white' : 'text-[#c9a24a]'}`} />
               <span>Samurai Honours</span>
+              {currentUser ? (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-black/40 border border-[rgba(201,162,74,0.35)] text-[10px] text-[#fce38a]">
+                  <span>{currentUser.avatar}</span>
+                  <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
+                </span>
+              ) : (
+                <Lock className="w-3 h-3 text-[#c9a24a] opacity-80" />
+              )}
             </button>
           </div>
         </div>
 
         {/* ── Mobile bottom bar ── */}
         <div className="flex lg:hidden items-center justify-around py-2 border-t border-[rgba(223,231,224,0.06)] text-[11px] overflow-x-auto gap-1">
-          {NAV_LINKS.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id)}
-              className={`flex items-center space-x-1 px-2.5 py-1 rounded transition-colors duration-150 whitespace-nowrap cursor-pointer ${
-                activeTab === id ? 'text-[#c9a24a] bg-white/5 font-semibold' : 'text-[#78837c]'
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              <span>{label}</span>
-            </button>
-          ))}
+          {NAV_LINKS.map(({ id, label, icon: Icon }) => {
+            const isOn = !isSamuraiHonoursPage && activeTab === id;
+            return (
+              <button
+                key={id}
+                onClick={() => setActiveTab(id)}
+                className={`flex items-center space-x-1 px-2.5 py-1 rounded transition-colors duration-150 whitespace-nowrap cursor-pointer ${
+                  isOn ? 'text-[#c9a24a] bg-white/5 font-semibold' : 'text-[#78837c]'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                <span>{label}</span>
+              </button>
+            );
+          })}
+          <button
+            type="button"
+            onClick={handleHonoursClick}
+            className={`flex items-center space-x-1 px-2.5 py-1 rounded transition-colors duration-150 whitespace-nowrap cursor-pointer ${
+              isSamuraiHonoursPage ? 'text-white bg-[#e0231c]/80 font-semibold' : 'text-[#fce38a]'
+            }`}
+          >
+            <Trophy className="w-3.5 h-3.5" />
+            <span>Samurai Honours</span>
+          </button>
         </div>
       </div>
     </header>
