@@ -1,0 +1,15 @@
+{
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/samurai-honours",
+      "destination": "/samurai-honours/index.html"
+    },
+    {
+      "source": "/((?!assets/|samurai-honours/|.*\\..*).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

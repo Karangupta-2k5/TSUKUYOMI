@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: tsukuyomi-watch-backend
+    runtime: python
+    rootDir: backend
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: NASA_API_KEY
+        value: PHTprLGWQp9PgwMHTDGDrbkmjdJhr9DQcdkmqmbh
+      - key: OPEN_METEO_WEATHER_URL
+        value: https://api.open-meteo.com/v1/forecast
+      - key: OPEN_METEO_GEOCODE_URL
+        value: https://geocoding-api.open-meteo.com/v1/search
+      - key: NASA_SKYVIEW_URL
+        value: https://skyview.gsfc.nasa.gov/current/cgi/runquery.pl

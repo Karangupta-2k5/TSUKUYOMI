@@ -16,6 +16,8 @@ import {
   Sliders,
 } from 'lucide-react';
 
+const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || '').replace(/\/$/, '');
+
 interface SpiritLensPageProps {
   onEnhanceComplete?: () => void;
 }
@@ -265,7 +267,7 @@ export const SpiritLensPage: React.FC<SpiritLensPageProps> = ({ onEnhanceComplet
       formData.append('outscale', String(scale));
       formData.append('tile', String(tile));
 
-      const resp = await fetch('/api/restore?format=json', {
+      const resp = await fetch(`${API_BASE}/api/restore?format=json`, {
         method: 'POST',
         body: formData,
       });

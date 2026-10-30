@@ -11,7 +11,8 @@ import {
 } from '../types/transient';
 import { FALLBACK_TRANSIENT_EVENTS, buildFallbackDetail } from '../data/transientData';
 
-const BASE_URL = 'http://127.0.0.1:8000/api/transient';
+const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || '').replace(/\/$/, '');
+const BASE_URL = `${API_BASE}/api/transient`;
 const STORAGE_KEY = 'tsukuyomi_transient_verifications';
 
 export async function fetchTransientEvents(category?: string): Promise<TransientEvent[]> {

@@ -9,6 +9,8 @@ import {
 import { CANDIDATE_LOCATIONS } from '../data/mockData';
 import { calculateNightHonorScore } from './scoreCalculator';
 
+const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || '').replace(/\/$/, '');
+
 /**
  * Format any UTC ISO timestamp into the user's local timezone alongside UTC.
  */
@@ -94,7 +96,7 @@ export async function fetchWeatherScore(
     let loadedViaBackend = false;
     try {
       const backendRes = await fetch(
-        `/api/celestial/weather-forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}`
+        `${API_BASE}/api/celestial/weather-forecast?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}`
       );
       if (backendRes.ok) {
         const bData = await backendRes.json();
@@ -225,7 +227,7 @@ export async function fetchMoonPhaseData(targetDate: Date = new Date()): Promise
   try {
     // 1. Try backend /api/celestial/moon-phases first
     try {
-      const bRes = await fetch(`/api/celestial/moon-phases?year=${year}`);
+      const bRes = await fetch(`${API_BASE}/api/celestial/moon-phases?year=${year}`);
       if (bRes.ok) {
         const bJson = await bRes.json();
         if (bJson && Array.isArray(bJson.phasedata) && bJson.phasedata.length > 0) {
@@ -398,7 +400,7 @@ export async function fetchCelestialEvents(_mode: AppMode = 'live'): Promise<Cel
     // 1. Try backend /api/celestial/lunar-eclipses first
     let loadedFromBackend = false;
     try {
-      const bRes = await fetch(`/api/celestial/lunar-eclipses?year=${year}`);
+      const bRes = await fetch(`${API_BASE}/api/celestial/lunar-eclipses?year=${year}`);
       if (bRes.ok) {
         const bJson = await bRes.json();
         if (bJson && Array.isArray(bJson.eclipses)) {

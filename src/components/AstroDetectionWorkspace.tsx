@@ -120,6 +120,8 @@ export interface DetectionAnalysisResponse {
   analysis_duration_ms: number;
 }
 
+const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || '').replace(/\/$/, '');
+
 interface AstroDetectionWorkspaceProps {
   sourceImageUrl: string;
   restoredImageUrl?: string | null;
@@ -497,7 +499,7 @@ export const AstroDetectionWorkspace: React.FC<AstroDetectionWorkspaceProps> = (
       formData.append('display_stretch', displayStretch);
       formData.append('analyze_restored', String(Boolean(restoredImageUrl && analyzeRestored)));
 
-      const resp = await fetch('/api/images/detect-objects', {
+      const resp = await fetch(`${API_BASE}/api/images/detect-objects`, {
         method: 'POST',
         body: formData,
       });
@@ -587,7 +589,7 @@ export const AstroDetectionWorkspace: React.FC<AstroDetectionWorkspaceProps> = (
       // Try backend cutout endpoint first
       if (analysis.image_id !== 'astro_local_canvas') {
         try {
-          const r = await fetch(`/api/images/${analysis.image_id}/detections/${selectedCandidate.id}`);
+          const r = await fetch(`${API_BASE}/api/images/${analysis.image_id}/detections/${selectedCandidate.id}`);
           if (r.ok) {
             const j = await r.json();
             if (!cancelled && j.cutout_preview_data_url) {

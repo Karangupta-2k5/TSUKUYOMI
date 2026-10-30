@@ -12,6 +12,7 @@ import {
   INITIAL_USER_CATALOG,
 } from '../data/skyviewData';
 
+const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || '').replace(/\/$/, '');
 const CATALOG_STORAGE_KEY = 'tsukuyomi_celestial_catalog_v1';
 const HONOR_POINTS_KEY = 'tsukuyomi_celestial_honor_bonus_v1';
 
@@ -21,7 +22,7 @@ const HONOR_POINTS_KEY = 'tsukuyomi_celestial_honor_bonus_v1';
  */
 export async function fetchSkyViewData(params: SkyViewQueryParams): Promise<SkyViewQueryResponse> {
   try {
-    const res = await axios.get<SkyViewQueryResponse>('/api/skyview', {
+    const res = await axios.get<SkyViewQueryResponse>(`${API_BASE}/api/skyview`, {
       params: {
         Position: params.position,
         Survey: params.survey,
