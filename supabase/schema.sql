@@ -78,6 +78,11 @@ create index if not exists idx_celestial_uploads_shared on public.celestial_uplo
 alter table public.stargazer_users enable row level security;
 alter table public.celestial_uploads enable row level security;
 
+-- Grant explicit Data API access to anon and authenticated roles
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on table public.stargazer_users to anon, authenticated;
+grant select, insert, update, delete on table public.celestial_uploads to anon, authenticated;
+
 drop policy if exists "Allow public read stargazer_users" on public.stargazer_users;
 create policy "Allow public read stargazer_users"
   on public.stargazer_users for select

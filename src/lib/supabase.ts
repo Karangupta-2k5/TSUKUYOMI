@@ -11,8 +11,13 @@ import { createClient, SupabaseClient } from '@supabase/supabase-js';
  *  - `celestial-uploads`   — Public bucket for uploaded astrophotography image files
  */
 
-const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim() || '';
-const SUPABASE_ANON_KEY = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim() || '';
+const SUPABASE_URL =
+  (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim() ||
+  'https://lcwsuzobacqzbutqwmvh.supabase.co';
+const SUPABASE_ANON_KEY =
+  (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim() ||
+  (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined)?.trim() ||
+  'sb_publishable_Vd1NePWLZcggX8aJ1v0Xpg_-b5DIoKi';
 
 export const isSupabaseConfigured = Boolean(
   SUPABASE_URL &&
